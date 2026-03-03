@@ -34,7 +34,7 @@ export default function ProductCard({ id, name, price, oldPrice, discount, image
         </div>
 
         {/* Content (Set to RTL for Arabic text alignment) */}
-        <div className="flex flex-col flex-grow p-4 md:p-5 text-right" dir="rtl">
+        <div className="flex flex-col grow p-4 md:p-5 text-center">
           <h3 className="font-semibold text-gray-800 text-sm md:text-base line-clamp-2 mb-3 group-hover:text-black transition-colors">
             {name}
           </h3>
