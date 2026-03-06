@@ -144,7 +144,7 @@ export default function Navbar() {
         />
 
         <div
-          className={`absolute top-0 right-0 h-full w-full max-w-sm bg-white shadow-2xl flex flex-col overflow-hidden transition-transform duration-300 ease-out transform-gpu ${isMenuOpen ? "translate-x-0" : "translate-x-full"
+          className={`absolute top-0 right-0 h-full w-[85%] max-w-xs sm:max-w-sm bg-white shadow-2xl flex flex-col overflow-hidden transition-transform duration-300 ease-out transform-gpu ${isMenuOpen ? "translate-x-0" : "translate-x-full"
             }`}
         >
           <div className="flex items-center justify-between p-6 border-b border-gray-100">
@@ -187,6 +187,7 @@ export default function Navbar() {
                 <Link
                   key={index}
                   href={item.href}
+                  onClick={() => setIsMenuOpen(false)}
                   className="group flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 transition-colors duration-200"
                 >
                   <div className="flex items-center gap-4 text-gray-600 group-hover:text-black font-semibold text-lg">
