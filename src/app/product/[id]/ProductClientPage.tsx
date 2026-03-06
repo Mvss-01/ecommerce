@@ -140,13 +140,13 @@ export default function ProductClientPage({ product }: { product: any }) {
                 <>
                   <button
                     onClick={() => setCurrentImgIndex(i => i === 0 ? product.product_images.length - 1 : i - 1)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/80 backdrop-blur-md text-gray-800 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-white"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/80 backdrop-blur-md text-gray-800 rounded-full flex items-center justify-center shadow-lg md:opacity-0 md:group-hover:opacity-100 transition-all hover:bg-white"
                   >
                     <ChevronRight className="w-6 h-6" />
                   </button>
                   <button
                     onClick={() => setCurrentImgIndex(i => i === product.product_images.length - 1 ? 0 : i + 1)}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/80 backdrop-blur-md text-gray-800 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-white"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/80 backdrop-blur-md text-gray-800 rounded-full flex items-center justify-center shadow-lg md:opacity-0 md:group-hover:opacity-100 transition-all hover:bg-white"
                   >
                     <ChevronLeft className="w-6 h-6" />
                   </button>
