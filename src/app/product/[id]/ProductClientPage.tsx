@@ -118,7 +118,7 @@ export default function ProductClientPage({ product }: { product: any }) {
   };
 
   return (
-    <div className={`min-h-screen bg-white text-gray-900 ${notoKufi.className}`}>
+    <div className={`min-h-screen bg-white text-gray-900 ${notoKufi.className} mt-20`}>
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16" dir="rtl">
@@ -274,6 +274,13 @@ export default function ProductClientPage({ product }: { product: any }) {
                 </div>
               </div>
 
+              <div className="flex justify-between items-center px-1 mb-2">
+                <span className="text-gray-600 font-medium">إجمالي المبلغ:</span>
+                <span className="text-2xl font-bold text-black">
+                  {(finalPrice * quantity).toLocaleString()} د.ج
+                </span>
+              </div>
+
               {/* Actions & Notifications */}
               <div className="flex flex-col gap-4 pt-2">
                 {/* Dynamic Alert */}
@@ -312,9 +319,6 @@ export default function ProductClientPage({ product }: { product: any }) {
                     <>
                       <ShoppingCart className="w-5 h-5 transition-transform group-hover:-translate-y-1 group-hover:translate-x-1" />
                       <span>أضف إلى سلَّة التسوق</span>
-                      <span className="absolute left-6 font-normal text-gray-400">
-                        {product.price * quantity} د.ج
-                      </span>
                     </>
                   )}
                 </button>

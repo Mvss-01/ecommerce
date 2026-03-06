@@ -117,7 +117,7 @@ export default function Navbar() {
               <div className="flex items-center gap-5">
                 <span className="font-bold text-lg tracking-tighter hidden sm:block text-black">La Perle</span>
                 <img
-                  src="logo2.png"
+                  src="/logo2.png"
                   alt="Logo"
                   className="h-12 w-auto rounded"
                 />
@@ -150,7 +150,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between p-6 border-b border-gray-100">
             <div className="flex items-center gap-3">
               <span className="font-bold text-xl tracking-tight text-black">La Perle</span>
-              <img src="logo2.png" alt="Logo" className="h-10 w-auto rounded" />
+              <img src="/logo2.png" alt="Logo" className="h-10 w-auto rounded" />
             </div>
             <button
               onClick={() => setIsMenuOpen(false)}
