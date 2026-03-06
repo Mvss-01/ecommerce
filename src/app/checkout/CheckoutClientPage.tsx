@@ -1,26 +1,23 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-  Trash2, Plus, Minus, ShoppingBag, ArrowRight, Check, 
-  User, Phone, MapPin, ShieldCheck 
+import {
+  Trash2, Plus, Minus, ShoppingBag, ArrowRight, Check,
+  User, Phone, MapPin, ShieldCheck
 } from "lucide-react";
+import {
+  FaUser, FaPhoneAlt, FaLayerGroup, FaBuilding,
+  FaInstagram, FaShoppingCart, FaLocationArrow, FaCheckCircle, FaArrowRight
+} from 'react-icons/fa';
 import { useRouter } from "next/navigation";
 import { Noto_Kufi_Arabic } from 'next/font/google';
+import CheckoutForm from "@/components/CheckoutForm";
 
 // 1. Initialize the font outside the component
 const notoKufi = Noto_Kufi_Arabic({
   subsets: ['arabic'],
   weight: ['400', '500', '600', '700']
 });
-
-const wilayaList = [
-  "أدرار", "الشلف", "الأغواط", "أم البواقي", "باتنة", "بجاية", "بسكرة",
-  "بئر الشاعر", "بليدة", "البويرة", "تمنراست", "تلمسان", "تيارت", "تيسمسيلت",
-  "الجزائر", "جيجل", "سطيف", "سعيدة", "سكيكدة", "سيدي بلعباس", "قسنطينة",
-  "قالمة", "غردايا", "قرقرة", "الجلفة", "جندوبة", "خنشلة", "خميس مليانة",
-  "الدالية", "دراعة", "الدلس", "الوادي", "وهران", "ورقلة", "وسيلة"
-];
 
 interface CartItem {
   id: string;
@@ -44,11 +41,6 @@ export default function CheckoutClientPage() {
   const router = useRouter();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    phone: "",
-    wilaya: wilayaList[0],
-  });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -69,6 +61,26 @@ export default function CheckoutClientPage() {
     const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
     localStorage.setItem("totalPrice", total.toString());
   }, [cart]);
+
+  const handleOrderSuccess = () => {
+    // 1. Clear the State
+    setCart([]);
+
+    // 2. Clear LocalStorage
+    localStorage.removeItem("cart");
+    localStorage.removeItem("totalPrice");
+
+    // 3. Notify other components (like a Navbar cart counter)
+    window.dispatchEvent(new Event("cartUpdated"));
+
+    // 4. Show the success state
+    setSubmitted(true);
+
+    // 5. Optional: Redirect to home after 5 seconds
+    // setTimeout(() => {
+    //   router.push("/");
+    // }, 5000);
+  };
 
   const handleQuantityChange = (itemId: string, newQuantity: number) => {
     if (newQuantity < 1) {
@@ -106,35 +118,6 @@ export default function CheckoutClientPage() {
 
   const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!formData.name.trim() || !formData.phone.trim() || !formData.wilaya) {
-      alert("يرجى ملء جميع الحقول المطلوبة");
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      localStorage.removeItem("cart");
-      setSubmitted(true);
-      setTimeout(() => {
-        router.push("/");
-      }, 3000);
-    } catch (error) {
-      console.error("Error submitting order:", error);
-      alert("حدث خطأ أثناء إرسال الطلب. يرجى المحاولة مرة أخرى.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -171,22 +154,83 @@ export default function CheckoutClientPage() {
   }
 
   // Success state
+  // if (submitted) {
+  //   return (
+  //     <div className={`min-h-screen bg-[#FAFAFA] p-4 md:p-8 flex items-center justify-center ${notoKufi.className}`}>
+  //       <div className="text-center max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50">
+  //         <div className="relative w-24 h-24 mx-auto mb-8">
+  //           <div className="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-20"></div>
+  //           <div className="relative w-full h-full bg-green-50 rounded-full flex items-center justify-center border-4 border-white shadow-sm">
+  //             <Check size={48} className="text-green-500" />
+  //           </div>
+  //         </div>
+  //         <h1 className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">تم استقبال طلبك بنجاح!</h1>
+  //         <p className="text-gray-500 mb-8 leading-relaxed">شكراً لتسوقك معنا. سيقوم فريقنا بالاتصال بك قريباً لتأكيد تفاصيل الشحن.</p>
+
+  //         <div className="bg-gray-50 rounded-2xl p-4 flex items-center justify-center space-x-3 space-x-reverse">
+  //           <div className="w-5 h-5 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
+  //           <span className="text-sm font-medium text-gray-600">جاري العودة للرئيسية...</span>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
+
   if (submitted) {
     return (
-      <div className={`min-h-screen bg-[#FAFAFA] p-4 md:p-8 flex items-center justify-center ${notoKufi.className}`}>
-        <div className="text-center max-w-md w-full bg-white p-10 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50">
-          <div className="relative w-24 h-24 mx-auto mb-8">
-            <div className="absolute inset-0 bg-green-100 rounded-full animate-ping opacity-20"></div>
-            <div className="relative w-full h-full bg-green-50 rounded-full flex items-center justify-center border-4 border-white shadow-sm">
-              <Check size={48} className="text-green-500" />
+      <div className={`min-h-screen bg-[#FAFAFA] p-4 md:p-8 flex items-center justify-center ${notoKufi.className}`} dir="rtl">
+        <div className="max-w-xl w-full bg-white p-8 md:p-12 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center text-center relative overflow-hidden animate-in fade-in zoom-in duration-700">
+
+          {/* Subtle Background Pattern */}
+          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 via-emerald-500 to-green-400" />
+
+          {/* Animated Checkmark Section */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 bg-green-100 rounded-full scale-150 opacity-20 animate-pulse"></div>
+            <div className="relative w-24 h-24 bg-green-500 rounded-full flex items-center justify-center shadow-[0_10px_25px_rgba(34,197,94,0.3)]">
+              <Check size={48} className="text-white stroke-[3px] animate-in zoom-in duration-500 delay-200" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-3 tracking-tight">تم استقبال طلبك بنجاح!</h1>
-          <p className="text-gray-500 mb-8 leading-relaxed">شكراً لتسوقك معنا. سيقوم فريقنا بالاتصال بك قريباً لتأكيد تفاصيل الشحن.</p>
-          
-          <div className="bg-gray-50 rounded-2xl p-4 flex items-center justify-center space-x-3 space-x-reverse">
-            <div className="w-5 h-5 border-2 border-gray-300 border-t-black rounded-full animate-spin" />
-            <span className="text-sm font-medium text-gray-600">جاري العودة للرئيسية...</span>
+
+          <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">تهانينا! تم استلام طلبك</h2>
+          <p className="text-gray-500 mb-10 max-w-sm leading-relaxed">
+            شكراً لتسوقك معنا. رقم طلبك هو <span className="font-bold text-black text-lg">#DZ-{Math.floor(Math.random() * 90000) + 10000}</span>.
+            سيتصل بك موظفونا قريباً لتأكيد الشحن.
+          </p>
+
+          {/* Visual Timeline - Makes it feel professional */}
+          <div className="w-full grid grid-cols-3 gap-2 mb-10 relative">
+            {[
+              { label: "تم الطلب", active: true },
+              { label: "تأكيد هاتفي", active: false },
+              { label: "التوصيل", active: false }
+            ].map((step, idx) => (
+              <div key={idx} className="flex flex-col items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors ${step.active ? 'bg-black border-black text-white' : 'bg-gray-50 border-gray-200 text-gray-300'}`}>
+                  {step.active ? <Check size={18} /> : <span className="text-xs font-bold">{idx + 1}</span>}
+                </div>
+                <span className={`text-xs font-bold ${step.active ? 'text-black' : 'text-gray-400'}`}>{step.label}</span>
+              </div>
+            ))}
+            {/* Connecting Lines */}
+            <div className="absolute top-5 right-[20%] left-[20%] h-[2px] bg-gray-100 -z-10"></div>
+          </div>
+
+          {/* Action Section */}
+          <div className="w-full space-y-4">
+            <button
+              onClick={() => router.push("/")}
+              className="w-full py-5 bg-black text-white rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-gray-800 transition-all shadow-xl shadow-black/10 active:scale-[0.98]"
+            >
+              العودة للمتجر الرئيسي <ArrowRight size={20} className="rotate-180" />
+            </button>
+
+            {/* Auto-redirect indicator */}
+            <div className="pt-4 flex flex-col items-center gap-2">
+              <div className="w-32 h-1 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-full bg-black animate-[shrink_5s_linear_forwards]" style={{ width: '100%' }}></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -195,10 +239,10 @@ export default function CheckoutClientPage() {
 
   return (
     <div className={`min-h-screen bg-[#FAFAFA] py-8 px-4 md:py-12 md:px-8 ${notoKufi.className} text-black`} dir="rtl">
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
-        
+      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-27">
+
         {/* CART ITEMS - LEFT COLUMN */}
-        <div className="lg:col-span-7 xl:col-span-8 order-2 lg:order-1">
+        <div className="lg:col-span-7 xl:col-span-7">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-900 tracking-tight">عربة التسوق</h2>
             <span className="bg-gray-100 text-gray-700 py-1 px-3 rounded-full text-sm font-semibold">
@@ -236,7 +280,7 @@ export default function CheckoutClientPage() {
                         <Trash2 size={18} />
                       </button>
                     </div>
-                    
+
                     <div className="flex flex-wrap gap-2 text-xs md:text-sm text-gray-500 mb-3">
                       <span className="bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-100">
                         اللون: <span className="font-semibold text-gray-900">{item.selected_color}</span>
@@ -251,7 +295,7 @@ export default function CheckoutClientPage() {
                     <p className="font-black text-gray-900 text-lg md:text-xl">
                       {item.price * item.quantity} <span className="text-sm text-gray-500 font-normal">دج</span>
                     </p>
-                    
+
                     {/* Quantity Controls - Pill Shaped */}
                     <div className="flex items-center bg-gray-50 border border-gray-100 rounded-full p-1 shadow-sm">
                       <button
@@ -289,123 +333,11 @@ export default function CheckoutClientPage() {
         </div>
 
         {/* CHECKOUT FORM - RIGHT COLUMN */}
-        <div className="lg:col-span-5 xl:col-span-4 order-1 lg:order-2">
-          <div className="bg-white rounded-[2rem] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50 sticky top-8">
-            
-            {/* Order Summary */}
-            <div className="mb-8 pb-6 border-b border-gray-100">
-              <h3 className="text-xl font-bold text-gray-900 mb-5">ملخص الطلب</h3>
-              <div className="space-y-3 text-sm text-gray-600 mb-6">
-                <div className="flex justify-between items-center">
-                  <span>إجمالي المنتجات</span>
-                  <span className="font-semibold text-gray-900">
-                    {cart.reduce((sum, item) => sum + item.quantity, 0)} قطع
-                  </span>
-                </div>
-                <div className="flex justify-between items-center text-green-600">
-                  <span>الشحن والدفع</span>
-                  <span className="font-medium flex items-center gap-1">
-                    <ShieldCheck size={16} /> الدفع عند الاستلام
-                  </span>
-                </div>
-              </div>
-              
-              <div className="flex justify-between items-center bg-[#FAFAFA] p-4 rounded-2xl border border-gray-100">
-                <span className="font-bold text-gray-900">المجموع النهائي</span>
-                <span className="text-2xl font-black text-gray-900">
-                  {totalPrice} <span className="text-base font-normal text-gray-500">دج</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Checkout Form */}
-            <form onSubmit={handleSubmit} className="space-y-5">
-              <h3 className="font-bold text-gray-900 mb-2">معلومات التوصيل</h3>
-
-              {/* Name Input */}
-              <div className="relative">
-                <label htmlFor="name" className="sr-only">الاسم الكامل</label>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                  <User size={18} className="text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleFormChange}
-                  placeholder="الاسم الكامل"
-                  className="w-full pr-11 pl-4 py-3.5 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:border-black focus:ring-4 focus:ring-black/5 transition-all text-gray-900 placeholder-gray-400 text-sm font-medium outline-none"
-                  disabled={isSubmitting}
-                  required
-                />
-              </div>
-
-              {/* Phone Input */}
-              <div className="relative">
-                <label htmlFor="phone" className="sr-only">رقم الهاتف</label>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                  <Phone size={18} className="text-gray-400" />
-                </div>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleFormChange}
-                  placeholder="رقم الهاتف"
-                  className="w-full pr-11 pl-4 py-3.5 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:border-black focus:ring-4 focus:ring-black/5 transition-all text-gray-900 placeholder-gray-400 text-sm font-medium outline-none"
-                  disabled={isSubmitting}
-                  required
-                  dir="ltr"
-                  style={{ textAlign: 'right' }} // Keeps text right-aligned even though direction is LTR for numbers
-                />
-              </div>
-
-              {/* Wilaya Select */}
-              <div className="relative">
-                <label htmlFor="wilaya" className="sr-only">الولاية</label>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                  <MapPin size={18} className="text-gray-400" />
-                </div>
-                <select
-                  id="wilaya"
-                  name="wilaya"
-                  value={formData.wilaya}
-                  onChange={handleFormChange}
-                  className="w-full pr-11 pl-4 py-3.5 bg-gray-50 border border-transparent rounded-xl focus:bg-white focus:border-black focus:ring-4 focus:ring-black/5 transition-all text-gray-900 text-sm font-medium outline-none appearance-none"
-                  disabled={isSubmitting}
-                  required
-                >
-                  {wilayaList.map((wilaya) => (
-                    <option key={wilaya} value={wilaya}>
-                      {wilaya}
-                    </option>
-                  ))}
-                </select>
-                {/* Custom dropdown arrow to replace default */}
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                  <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
-                </div>
-              </div>
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="w-full mt-2 bg-gradient-to-r from-gray-900 to-black text-white py-4 rounded-xl font-bold text-base hover:shadow-lg hover:shadow-black/20 hover:-translate-y-0.5 transition-all duration-300 disabled:opacity-70 disabled:hover:transform-none disabled:hover:shadow-none flex items-center justify-center overflow-hidden relative"
-              >
-                {isSubmitting ? (
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>جاري تأكيد الطلب...</span>
-                  </div>
-                ) : (
-                  "تأكيد الطلب الآن"
-                )}
-              </button>
-            </form>
-          </div>
+        <div className="lg:col-span-5">
+          <CheckoutForm
+            totalPrice={totalPrice}
+            onSuccess={handleOrderSuccess}
+          />
         </div>
       </div>
     </div>

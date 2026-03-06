@@ -1,54 +1,53 @@
 // components/Footer.tsx
 import Image from 'next/image';
 
+import {
+  FaShoppingCart, FaSearch, FaInstagram,
+  FaFacebookF, FaTimes
+} from 'react-icons/fa';
+import { HiMenuAlt3 } from 'react-icons/hi';
+
 export default function Footer() {
   return (
-    <footer className="border-t bg-white py-5 mt-10">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-          
-          {/* Brand Logo Section */}
-          <div className="flex flex-col items-center md:items-start order-1 md:order-3">
-            <div className="bg-[#1a2e1a] p-2 rounded mb-2">
-               <div className="w-12 h-12 flex items-center justify-center text-white text-[10px] font-bold">
-                 PRIMZO
-               </div>
-            </div>
-            <span className="font-bold text-sm tracking-widest text-gray-400">PRIMZO</span>
-          </div>
+    <footer className="bg-white border-t border-gray-100 py-5 px-6 md:px-12" dir="rtl">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10">
 
-          {/* Boutique Links */}
-          <div className="flex flex-col items-center md:items-center flex-1 order-2">
-            <h4 className="font-bold text-gray-800 mb-4 uppercase tracking-wider">Boutique</h4>
-            <ul className="space-y-2 text-center">
-              <li>
-                <a href="#" className="text-gray-600 hover:text-black transition-colors text-sm">
-                  تواصل معنا
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Delivery Section */}
-          <div className="flex flex-col items-center md:items-end flex-1 order-3 md:order-1">
-            <h4 className="font-bold text-gray-800 mb-4 uppercase tracking-wider">التوصيل</h4>
-            <ul className="space-y-2 text-center md:text-right">
-              <li>
-                <a href="#" className="text-gray-600 hover:text-black transition-colors text-sm">
-                  أسعار التوصيل
-                </a>
-              </li>
-            </ul>
-          </div>
-
-        </div>
-
-        {/* Bottom Copyright (Optional addition for a finished look) */}
-        <div className="border-t mt-12 pt-6 text-center">
-          <p className="text-xs text-gray-400">
-            &copy; {new Date().getFullYear()} PRIMZO HOMME. جميع الحقوق محفوظة
+        {/* Section Marque */}
+        <div className="flex flex-col items-start gap-4">
+          <img src="logo2.png" alt="Logo" className="w-20 mb-2" />
+          <h2 className="text-2xl font-extrabold tracking-wide text-black">La Perle</h2>
+          <p className="text-gray-500 text-sm leading-relaxed max-w-xs">
+            اليكِ ولجمالكِ. حيث تجتمع الأنوثة مع الجودة العالية لتكتمل أناقتكِ اليومية
           </p>
+          <div className="flex gap-4 mt-2">
+            <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600 hover:bg-black hover:text-white transition-all text-xl">
+              <FaInstagram />
+            </a>
+            <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-600 hover:bg-black hover:text-white transition-all text-xl">
+              <FaFacebookF />
+            </a>
+          </div>
         </div>
+
+        {/* Boutique Links */}
+        <div className='mt-5'>
+          <h3 className="text-xs font-bold tracking-[0.2em] text-black mb-6 uppercase">Boutique</h3>
+          <ul className="space-y-3">
+            <li><a href="#" className="text-gray-500 hover:text-black hover:pr-2 transition-all text-[15px]">تواصل معنا</a></li>
+            <li><a href="#" className="text-gray-500 hover:text-black hover:pr-2 transition-all text-[15px]">حول المتجر</a></li>
+            <li><a href="#" className="text-gray-500 hover:text-black hover:pr-2 transition-all text-[15px]">الأسئلة الشائعة</a></li>
+          </ul>
+        </div>
+
+        {/* Livraison Links */}
+        <div className='mt-5'>
+          <h3 className="text-xs font-bold tracking-[0.2em] text-black mb-6 uppercase">التوصيل</h3>
+          <ul className="space-y-3">
+            <li><a href="#" className="text-gray-500 hover:text-black hover:pr-2 transition-all text-[15px]">أسعار التوصيل</a></li>
+            <li><a href="#" className="text-gray-500 hover:text-black hover:pr-2 transition-all text-[15px]">سياسة الاسترجاع</a></li>
+          </ul>
+        </div>
+
       </div>
     </footer>
   );
