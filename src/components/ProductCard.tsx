@@ -68,7 +68,7 @@ export default function ProductCard({ id, name, price, oldPrice, product_discoun
             </div>
 
             {/* Fake button: Replaced <button> with <span> for valid HTML inside a <Link> */}
-            <span className="w-full flex items-center justify-center bg-black md:bg-gray-50 text-gray-900 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 group-hover:bg-black group-hover:text-white group-hover:shadow-md">
+            <span className="w-full flex items-center justify-center bg-black md:bg-gray-50 text-white md:text-gray-900 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 group-hover:bg-black group-hover:text-white group-hover:shadow-md">
               أطلب الآن
             </span>
           </div>
