@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import {
     FaUser, FaPhoneAlt, FaLayerGroup, FaBuilding,
-    FaInstagram, FaShoppingCart, FaLocationArrow, FaCheckCircle, FaArrowRight
+    FaShoppingCart, FaLocationArrow, FaCheckCircle, FaArrowRight
 } from 'react-icons/fa';
-
+import { SupabaseClient } from '@supabase/supabase-js';
 // Liste des 58 Wilayas d'Algérie
 const wilayas = [
     "01 أدرار", "02 الشلف", "03 الأغواط", "04 أم البواقي", "05 باتنة", "06 بجاية", "07 بسكرة", "08 بشار", "09 البليدة", "10 البويرة",
@@ -25,14 +25,23 @@ const communesData: Record<string, string[]> = {
 };
 
 interface CheckoutFormProps {
+    cart: any[]; // Make sure to pass the cart array from CheckoutClientPage
     totalPrice: number;
-    onSuccess: () => void; // Add this line
+    onSuccess: () => void;
 }
 
-export default function CheckoutForm({ totalPrice, onSuccess }: CheckoutFormProps) {
+export default function CheckoutForm({ cart, totalPrice, onSuccess }: CheckoutFormProps) {
     const [selectedWilaya, setSelectedWilaya] = useState("");
     const [communes, setCommunes] = useState<string[]>([]);
     const [deliveryType, setDeliveryType] = useState("home");
+
+    // Capture form text inputs
+    const [formData, setFormData] = useState({
+        name: "",
+        phone: "",
+        commune: "",
+        address: ""
+    });
 
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
@@ -43,42 +52,69 @@ export default function CheckoutForm({ totalPrice, onSuccess }: CheckoutFormProp
         } else {
             setCommunes(selectedWilaya ? ["البلدية المركزية"] : []);
         }
+        // Reset commune when wilaya changes
+        setFormData(prev => ({ ...prev, commune: "" }));
     }, [selectedWilaya]);
 
-    // Inside your CheckoutForm component
     const getDeliveryPrice = () => {
         if (!selectedWilaya) return 0;
-
-        // 1. Base price based on Wilaya
         const wilayaNumber = parseInt(selectedWilaya.substring(0, 2));
         const basePrice = wilayaNumber <= 29 ? 500 : 700;
-
-        // 2. Extra fee for Home delivery
         const extraFee = deliveryType === "home" ? 200 : 0;
-
         return basePrice + extraFee;
     };
 
-    // Form Submission Handler
+    const deliveryPrice = getDeliveryPrice();
+    const finalTotal = totalPrice + deliveryPrice;
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Prevent empty cart submission
+        if (!cart || cart.length === 0) {
+            alert("سلة التسوق فارغة");
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
-            // Simulate your API call here
-            // const response = await fetch('/api/orders', { ... })
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            // 1. Format products into desired JSONB structure
+            const formattedProducts = cart.map(item => ({
+                name: item.product_name,
+                quantity: item.quantity,
+                color: item.selected_color,
+                size: item.selected_size
+            }));
 
-            // Call the reset function from the parent
-            onSuccess();
+            // 2. Send to Supabase
+            // Note: If you want to save phone, wilaya, and address, add those columns to your table 
+            // and include them in this object.
+            const { error } = await SupabaseClient
+                .from("client-orders")
+                .insert([
+                    {
+                        client_name: formData.name,
+                        products: formattedProducts,
+                        total_price: finalTotal // Make sure this column name matches your database (e.g., total_price or total)
+                    }
+                ]);
+
+            if (error) throw error;
+
+            // 3. Trigger success UI
+            setIsSubmitted(true);
+            
+            // Optional: You can still call onSuccess() here to clear the cart in the parent
+            onSuccess(); 
+
         } catch (error) {
             console.error("Order failed", error);
+            alert("حدث خطأ أثناء تأكيد الطلب. يرجى المحاولة مرة أخرى.");
         } finally {
             setIsSubmitting(false);
         }
     };
-
-    const deliveryPrice = getDeliveryPrice();
 
     if (isSubmitted) {
         return (
@@ -99,7 +135,7 @@ export default function CheckoutForm({ totalPrice, onSuccess }: CheckoutFormProp
                     </div>
                     <div className="flex justify-between text-sm">
                         <span className="text-gray-400">المبلغ الإجمالي:</span>
-                        <span className="font-bold text-green-600">{totalPrice + deliveryPrice} دج</span>
+                        <span className="font-bold text-green-600">{finalTotal} دج</span>
                     </div>
                 </div>
 
@@ -115,18 +151,34 @@ export default function CheckoutForm({ totalPrice, onSuccess }: CheckoutFormProp
 
     return (
         <div className="bg-white w-full p-6 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100/50 lg:sticky lg:top-8">
-            <form className="space-y-4">
+            {/* Added onSubmit handler to the form element */}
+            <form onSubmit={handleSubmit} className="space-y-4">
                 <h3 className="text-xl font-bold text-gray-900 mb-6">معلومات الزبون</h3>
 
                 <div className="flex flex-col gap-3">
                     <div className="flex items-center border border-gray-100 rounded-2xl p-4 bg-gray-50 focus-within:bg-white focus-within:border-black transition-all">
                         <FaUser className="text-gray-400 ml-3" />
-                        <input type="text" placeholder="الإسم واللقب" className="w-full outline-none text-sm bg-transparent text-black" required />
+                        <input 
+                            type="text" 
+                            placeholder="الإسم واللقب" 
+                            className="w-full outline-none text-sm bg-transparent text-black" 
+                            required 
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        />
                     </div>
 
                     <div className="flex items-center border border-gray-100 rounded-2xl p-4 bg-gray-50 focus-within:bg-white focus-within:border-black transition-all">
                         <FaPhoneAlt className="text-gray-400 ml-3" />
-                        <input type="tel" placeholder="رقم الهاتف" className="w-full outline-none text-sm bg-transparent text-black" dir='rtl' required />
+                        <input 
+                            type="tel" 
+                            placeholder="رقم الهاتف" 
+                            className="w-full outline-none text-sm bg-transparent text-black" 
+                            dir='rtl' 
+                            required 
+                            value={formData.phone}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        />
                     </div>
                 </div>
 
@@ -145,7 +197,12 @@ export default function CheckoutForm({ totalPrice, onSuccess }: CheckoutFormProp
                     </div>
                     <div className="flex items-center border border-gray-100 rounded-2xl p-4 bg-gray-50">
                         <FaBuilding className="text-gray-400 ml-3" />
-                        <select className="w-full outline-none text-sm bg-transparent cursor-pointer text-black" required>
+                        <select 
+                            className="w-full outline-none text-sm bg-transparent cursor-pointer text-black" 
+                            required
+                            value={formData.commune}
+                            onChange={(e) => setFormData({ ...formData, commune: e.target.value })}
+                        >
                             <option value="">البلدية</option>
                             {communes.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
@@ -154,7 +211,14 @@ export default function CheckoutForm({ totalPrice, onSuccess }: CheckoutFormProp
 
                 <div className="flex items-center border border-gray-100 rounded-2xl p-4 bg-gray-50 focus-within:bg-white focus-within:border-black transition-all">
                     <FaLocationArrow className="text-gray-400 ml-3" />
-                    <input type="text" placeholder="العنوان الكامل" className="w-full outline-none text-sm bg-transparent text-black" required />
+                    <input 
+                        type="text" 
+                        placeholder="العنوان الكامل" 
+                        className="w-full outline-none text-sm bg-transparent text-black" 
+                        required 
+                        value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    />
                 </div>
 
                 <div className="py-2">
@@ -201,15 +265,15 @@ export default function CheckoutForm({ totalPrice, onSuccess }: CheckoutFormProp
                     <div className="pt-3 border-t border-dashed border-gray-200 flex justify-between items-center">
                         <span className="font-bold text-black">الإجمالي</span>
                         <span className="text-2xl font-black text-green-600">
-                            {totalPrice + deliveryPrice} دج
+                            {finalTotal} دج
                         </span>
                     </div>
                 </div>
 
+                {/* Changed onClick to form submission logic */}
                 <button
                     type="submit"
                     disabled={isSubmitting}
-                    onClick={handleSubmit}
                     className={`w-full ${isSubmitting ? 'bg-gray-400' : 'bg-black'} text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-gray-800 transition-all shadow-xl shadow-black/10 active:scale-[0.98]`}
                 >
                     {isSubmitting ? (

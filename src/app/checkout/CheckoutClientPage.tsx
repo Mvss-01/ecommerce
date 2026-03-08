@@ -82,6 +82,7 @@ export default function CheckoutClientPage() {
     // }, 5000);
   };
 
+
   const handleQuantityChange = (itemId: string, newQuantity: number) => {
     if (newQuantity < 1) {
       removeFromCart(itemId);
@@ -335,6 +336,7 @@ export default function CheckoutClientPage() {
         {/* CHECKOUT FORM - RIGHT COLUMN */}
         <div className="lg:col-span-5">
           <CheckoutForm
+           cart={cart}
             totalPrice={totalPrice}
             onSuccess={handleOrderSuccess}
           />
