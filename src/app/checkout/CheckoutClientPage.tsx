@@ -196,7 +196,7 @@ export default function CheckoutClientPage() {
 
           <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">تهانينا! تم استلام طلبك</h2>
           <p className="text-gray-500 mb-10 max-w-sm leading-relaxed">
-            شكراً لتسوقك معنا. رقم طلبك هو <span className="font-bold text-black text-lg">{orderID}</span><br />
+            شكراً لتسوقك معنا. رقم طلبك هو : <span className="font-bold text-black text-lg"><br />{orderID}</span><br />
             سيتصل بك موظفونا قريباً لتأكيد الشحن.
           </p>
 
@@ -228,11 +228,6 @@ export default function CheckoutClientPage() {
             </button>
 
             {/* Auto-redirect indicator */}
-            <div className="pt-4 flex flex-col items-center gap-2">
-              <div className="w-32 h-1 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-black animate-[shrink_5s_linear_forwards]" style={{ width: '100%' }}></div>
-              </div>
-            </div>
           </div>
         </div>
       </div>
