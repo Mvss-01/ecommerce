@@ -343,9 +343,9 @@ export default function App() {
         )}
 
         {activeTab === 'orders' && (
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col w-full">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col w-full">
             <div className="overflow-x-auto w-full">
-              <table className={`w-full text-left border-collapse min-w-[1000px] xl:min-w-full ${notoKufi.className}`}>
+              <table className={`w-full text-left border-collapse min-h-[300px] min-w-[1000px] xl:min-w-full ${notoKufi.className}`}>
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
                     <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Commande</th>
@@ -355,8 +355,8 @@ export default function App() {
                     <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase min-w-[200px] xl:min-w-50">Adresse</th>
                     <th className="px-4 py-4 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Type de livraison</th>
                     <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Total</th>
-                    <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase w-40 whitespace-nowrap">Statut</th>
-                    <th className="text-xs font-bold text-slate-500 uppercase text-center whitespace-nowrap">Actions</th>
+                    <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase w-30 whitespace-nowrap">Statut</th>
+                    <th className="text-xs font-bold text-slate-500 uppercase text-center whitespace-nowrap"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -443,10 +443,10 @@ function StatusDropdown({ currentStatus, onStatusChange }: StatusDropdownProps) 
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full ">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all hover:shadow-sm ${safeConfig.color}`}
+        className={`w-full flex items-center justify-between px-4 py-2 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all hover:shadow-sm ${safeConfig.color}`}
       >
         <div className="flex items-center gap-2 whitespace-nowrap">
           {safeConfig.label}
