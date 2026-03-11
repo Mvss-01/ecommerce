@@ -33,8 +33,8 @@ export default function Footer() {
         <div className='mt-5'>
           <h3 className="text-xs font-bold tracking-[0.2em] text-black mb-6 uppercase">Boutique</h3>
           <ul className="space-y-3">
-            <li><a href="#" className="text-gray-500 hover:text-black hover:pr-2 transition-all text-[15px]">تواصل معنا</a></li>
-            <li><a href="#" className="text-gray-500 hover:text-black hover:pr-2 transition-all text-[15px]">حول المتجر</a></li>
+            <li><a href="/contact" className="text-gray-500 hover:text-black hover:pr-2 transition-all text-[15px]">تواصل معنا</a></li>
+            {/* <li><a href="#" className="text-gray-500 hover:text-black hover:pr-2 transition-all text-[15px]">حول المتجر</a></li> */}
             <li><a href="#" className="text-gray-500 hover:text-black hover:pr-2 transition-all text-[15px]">الأسئلة الشائعة</a></li>
           </ul>
         </div>
@@ -43,8 +43,8 @@ export default function Footer() {
         <div className='mt-5'>
           <h3 className="text-xs font-bold tracking-[0.2em] text-black mb-6 uppercase">التوصيل</h3>
           <ul className="space-y-3">
-            <li><a href="#" className="text-gray-500 hover:text-black hover:pr-2 transition-all text-[15px]">أسعار التوصيل</a></li>
-            <li><a href="#" className="text-gray-500 hover:text-black hover:pr-2 transition-all text-[15px]">سياسة الاسترجاع</a></li>
+            <li><a href="/prix-livraison" className="text-gray-500 hover:text-black hover:pr-2 transition-all text-[15px]">أسعار التوصيل</a></li>
+            {/* <li><a href="#" className="text-gray-500 hover:text-black hover:pr-2 transition-all text-[15px]">سياسة الاسترجاع</a></li> */}
           </ul>
         </div>
 

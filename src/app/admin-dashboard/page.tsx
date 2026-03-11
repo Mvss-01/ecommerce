@@ -12,10 +12,18 @@ import {
   Clock,
   Upload,
   ChevronDown,
-  Layers
+  Layers,
+  Menu,
+  X
 } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
+import { Noto_Kufi_Arabic } from 'next/font/google';
+
+const notoKufi = Noto_Kufi_Arabic({
+  subsets: ['arabic'],
+  weight: ['400', '700']
+});
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -23,7 +31,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // --- Types & Interfaces ---
 
-type OrderStatus = 'Pending' | 'Confirmed' | 'Canceled';
+type OrderStatus = 'pending' | 'confirmed' | 'canceled';
 
 interface Product {
   id: number;
@@ -37,23 +45,23 @@ interface Product {
 }
 
 interface OrderItem {
-  productId: number;
   name: string;
   color: string;
   size: string;
   quantity: number;
-  unitPrice: number;
 }
 
 interface Order {
-  id: string;
-  items: OrderItem[];
+  id: number;
+  order_id: string;
+  products: OrderItem[];
   total: number;
   status: OrderStatus;
-  customer: string;
-  num_tel: string,
-  adress: string,
-  date: string;
+  client_name: string;
+  phone_number: string;
+  adress: string;
+  delivery_type: string;
+  created_at: string;
 }
 
 // --- Main App Component ---
@@ -62,7 +70,9 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'Inventaire' | 'orders' | 'ajoute-produits'>('Inventaire');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // --- 1. Fetch Products from Supabase ---
   const fetchProducts = async () => {
@@ -91,14 +101,14 @@ export default function App() {
     if (editingProduct) {
       const { error } = await supabase
         .from('hmed-ecommerce')
-        .update(productData) // This will now include the new product_images array
+        .update(productData)
         .eq('id', editingProduct.id);
 
       if (error) alert("Update failed: " + error.message);
     } else {
       const { error } = await supabase
         .from('hmed-ecommerce')
-        .insert([productData]); // This inserts all fields including the image URLs
+        .insert([productData]);
 
       if (error) alert("Insert failed: " + error.message);
     }
@@ -126,34 +136,56 @@ export default function App() {
     }
   };
 
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: "ORD-7721",
-      items: [
-        { productId: 1, name: "Classic Oversized Tee", color: "Black", size: "L", quantity: 2, unitPrice: 3500 },
-        { productId: 2, name: "Heavyweight Hoodie", color: "Navy", size: "M", quantity: 1, unitPrice: 6800 }
-      ],
-      total: 13800,
-      status: "Pending",
-      customer: "Ahmed K.",
-      num_tel: "0550657510",
-      adress: "Tizi Ouzou, Beni Zmenzer",
-      date: "2023-10-24"
-    },
-    {
-      id: "ORD-8810",
-      items: [
-        { productId: 2, name: "Heavyweight Hoodie", color: "Navy", size: "M", quantity: 1, unitPrice: 6800 }
-      ],
-      total: 6800,
-      status: "Confirmed",
-      customer: "Sara M.",
-      num_tel: "0550657510",
-      adress: "Tizi Ouzou, Beni Zmenzer",
-      date: "2023-10-23"
-    }
-  ]);
+  // --- Delete Order from Supabase ---
+  const deleteOrder = async (orderId: string) => {
+    setLoading(true);
+    const { error } = await supabase
+      .from('client-orders')
+      .delete()
+      .eq('order_id', orderId);
 
+    if (error) {
+      alert("Erreur lors de la suppression : " + error.message);
+    } else {
+      setOrders(orders.filter(order => order.order_id !== orderId));
+    }
+    setLoading(false);
+  };
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    const { data, error } = await supabase
+      .from('client-orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching orders:", error);
+    } else {
+      setOrders(data || []);
+    }
+    setLoading(false);
+  };
+
+  const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
+    const { error } = await supabase
+      .from('client-orders')
+      .update({ status: newStatus })
+      .eq('order_id', orderId);
+
+    if (error) {
+      alert("Failed to update status");
+    } else {
+      setOrders(orders.map(order =>
+        order.order_id === orderId ? { ...order, status: newStatus } : order
+      ));
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    fetchOrders();
+  }, []);
 
   const handleAddProduct = (newProduct: Omit<Product, 'id'>) => {
     if (editingProduct) {
@@ -165,40 +197,68 @@ export default function App() {
     setActiveTab('Inventaire');
   };
 
-  const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
-    setOrders(orders.map(order =>
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ));
-  };
+  const navigateTab = (tab: 'Inventaire' | 'orders' | 'ajoute-produits') => {
+    setActiveTab(tab);
+    setIsMobileMenuOpen(false);
+  }
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50 font-sans text-slate-900">
+
+      {/* Mobile Header */}
+      <div className="md:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between sticky top-0 z-40 shadow-sm">
+        <Link href="/" className="text-xl font-bold tracking-tight text-indigo-600 flex items-center gap-2">
+          <Package size={24} />
+          <span>La Perle</span>
+        </Link>
+        <button
+          onClick={() => setIsMobileMenuOpen(true)}
+          className="p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+        >
+          <Menu size={24} />
+        </button>
+      </div>
+
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden backdrop-blur-sm"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-white border-r border-slate-200 hidden md:flex flex-col sticky top-0 h-screen">
-        <div className="p-6">
+      <aside className={`fixed inset-y-0 right-0 z-50 w-64 bg-white border-l md:border-l-0 md:border-r border-slate-200 flex flex-col h-screen transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:sticky md:top-0 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="p-6 flex justify-between items-center">
           <Link href="/" className="text-2xl font-bold tracking-tight text-indigo-600 flex items-center gap-2">
             <Package size={28} />
             <span>La Perle</span>
           </Link>
+          <button
+            className="md:hidden text-slate-500 hover:bg-slate-100 p-1 rounded-md"
+            onClick={() => setIsMobileMenuOpen(false)}
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        <nav className="flex-1 px-4 space-y-2 mt-4">
+        <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto">
           <button
-            onClick={() => setActiveTab('Inventaire')}
+            onClick={() => navigateTab('Inventaire')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'Inventaire' ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-500 hover:bg-slate-50'}`}
           >
             <LayoutDashboard size={20} />
             L'inventaire
           </button>
           <button
-            onClick={() => { setEditingProduct(null); setActiveTab('ajoute-produits'); }}
+            onClick={() => { setEditingProduct(null); navigateTab('ajoute-produits'); }}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'ajoute-produits' ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-500 hover:bg-slate-50'}`}
           >
             <PlusCircle size={20} />
             Ajouter un produit
           </button>
           <button
-            onClick={() => setActiveTab('orders')}
+            onClick={() => navigateTab('orders')}
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'orders' ? 'bg-indigo-50 text-indigo-600 font-semibold' : 'text-slate-500 hover:bg-slate-50'}`}
           >
             <ShoppingCart size={20} />
@@ -211,32 +271,31 @@ export default function App() {
             <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">DZ</div>
             <div className="text-sm">
               <p className="font-medium text-slate-800">Admin User</p>
-              <p className="text-xs">Algeria Store</p>
             </div>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto">
-        <header className="mb-8 flex justify-between items-center">
+      <main className="flex-1 p-4 md:p-8 overflow-y-auto w-full max-w-full">
+        <header className="mb-6 md:mb-8 flex justify-between items-center">
           <div>
-            <h2 className="text-3xl font-bold text-slate-800 capitalize">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-800 capitalize">
               {activeTab.replace('-', ' ')}
             </h2>
-            <p className="text-slate-500">Gérez votre entreprise de vêtements en toute simplicité.</p>
+            <p className="text-sm md:text-base text-slate-500">Gérez votre entreprise de vêtements en toute simplicité.</p>
           </div>
         </header>
 
         {activeTab === 'Inventaire' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
             {products.map(product => (
               <div key={product.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden group hover:shadow-lg transition-all">
-                <div className="h-100 bg-slate-100 relative overflow-hidden">
-                  <img src={product.product_images[0]} alt={product.product_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                <div className="h-120 sm:h-80 bg-slate-100 relative overflow-hidden">
+                  <img src={product.product_images[0]} alt={product.product_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   <div className="absolute top-2 right-2 flex gap-2">
                     <button
-                      onClick={() => { setEditingProduct(product); setActiveTab('ajoute-produits'); }}
+                      onClick={() => { setEditingProduct(product); navigateTab('ajoute-produits'); }}
                       className="p-2 bg-white/90 backdrop-blur rounded-full text-slate-600 hover:text-indigo-600 shadow-sm transition-colors"
                     >
                       <Edit3 size={16} />
@@ -250,7 +309,10 @@ export default function App() {
                   </div>
                 </div>
                 <div className="p-5">
-                  <h3 className="font-bold text-lg text-slate-800">{product.product_name}</h3>
+                  <h3 className="font-bold text-lg text-slate-800 truncate">{product.product_name}</h3>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${product.stock > 0 ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
+                    {product.stock} en stock
+                  </span>
                   <p className="text-indigo-600 font-bold mt-1 text-xl">{product.price} DZD</p>
 
                   <div className="mt-4 flex flex-wrap gap-1">
@@ -271,78 +333,84 @@ export default function App() {
         )}
 
         {activeTab === 'ajoute-produits' && (
-          <div className="max-w-3xl bg-white rounded-2xl border border-slate-200 p-8 shadow-sm">
+          <div className="max-w-4xl bg-white rounded-2xl border border-slate-200 p-6 md:p-8 shadow-sm">
             <ProductForm
               onSave={handleSaveProduct}
               initialData={editingProduct}
-              onCancel={() => setActiveTab('Inventaire')}
+              onCancel={() => navigateTab('Inventaire')}
             />
           </div>
         )}
 
         {activeTab === 'orders' && (
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse min-w-[900px]">
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm flex flex-col w-full">
+            <div className="overflow-x-auto w-full">
+              <table className={`w-full text-left border-collapse min-w-[1000px] xl:min-w-full ${notoKufi.className}`}>
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Détails de la commande</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Produits (Qté)</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Client</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Numéro de téléphone</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Adresse</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Total</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase w-48">Statut</th>
+                    <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Commande</th>
+                    <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase">Produits</th>
+                    <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Client</th>
+                    <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Numéro</th>
+                    <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase min-w-[200px] xl:min-w-50">Adresse</th>
+                    <th className="px-4 py-4 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Type de livraison</th>
+                    <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Total</th>
+                    <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase w-40 whitespace-nowrap">Statut</th>
+                    <th className="text-xs font-bold text-slate-500 uppercase text-center whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {orders.map(order => (
-                    <tr key={order.id} className="hover:bg-slate-50/50 transition-colors align-top">
-                      <td className="px-6 py-4">
-                        <span className="font-mono text-xs font-bold text-slate-400 block mb-1">{order.id}</span>
-                        <div className="flex items-center gap-1 text-[10px] text-slate-400 uppercase font-bold">
-                          <Clock size={10} /> {order.date}
+                    <tr key={order.order_id} className="hover:bg-slate-50/50 transition-colors align-top">
+                      <td className="px-4 md:px-6 py-4">
+                        <span className="font-mono text-xs font-bold text-slate-400 block mb-1">{order.order_id}</span>
+                        <div className="flex items-center gap-1 text-[10px] text-slate-400 uppercase font-bold whitespace-nowrap">
+                          <Clock size={10} /> {new Date(order.created_at).toLocaleDateString()}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 md:px-6 py-4 min-w-[200px]">
                         <div className="space-y-3">
-                          {order.items.map((item, idx) => (
+                          {order.products.map((item, idx) => (
                             <div key={idx} className="flex flex-col border-l-2 border-indigo-100 pl-3">
-                              <p className="font-semibold text-slate-800 text-sm">{item.name}</p>
-                              <div className="flex gap-2 items-center mt-0.5">
-                                <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 font-bold uppercase">{item.size}</span>
-                                <span className="text-[10px] bg-indigo-50 px-1.5 py-0.5 rounded text-indigo-600 font-bold uppercase">{item.color}</span>
-                                <span className="text-[10px] text-slate-400 font-bold">×{item.quantity}</span>
+                              <p className="font-semibold text-sm text-slate-800">{item.name}</p>
+                              <div className="flex gap-2 items-center text-[10px] font-bold uppercase">
+                                <span className="text-slate-500">{item.size}</span>
+                                <span className="text-indigo-400">{item.color}</span>
+                                <span className="text-slate-400">×{item.quantity}</span>
                               </div>
                             </div>
                           ))}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <p className="text-sm font-bold text-slate-700">{order.customer}</p>
+                      <td className="px-4 md:px-6 py-4 font-bold text-sm text-slate-700 whitespace-nowrap">{order.client_name}</td>
+                      <td className="px-4 md:px-6 py-4 text-sm font-bold text-slate-700 whitespace-nowrap">{order.phone_number}</td>
+                      <td className="px-4 md:px-6 py-4 text-[14px] md:text-[15px] text-black xl:max-w-none break-words leading-tight">{order.adress}</td>
+                      <td className="px-4 md:px-6 py-4">
+                        <span className="inline-block px-2 py-1 bg-slate-100 text-[10px] rounded font-bold uppercase text-slate-600 whitespace-nowrap">{order.delivery_type}</span>
                       </td>
-                      <td className="px-6 py-4">
-                        {/* If this shows 'Missing', the property name in your dummy data is wrong */}
-                        <p className="text-sm font-bold text-slate-700">{order.num_tel || 'Missing Tel'}</p>
-                      </td>
-                      <td className="px-6 py-4">
-                        {/* If this shows 'Missing', the property name in your dummy data is wrong */}
-                        <p className="text-sm font-bold text-slate-700">{order.adress || 'Missing Adress'}</p>
-                      </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 md:px-6 py-4">
                         <p className="font-bold text-indigo-600 whitespace-nowrap">{order.total.toLocaleString()} DZD</p>
-                        <p className="text-[10px] text-slate-400 font-medium">{order.items.length} Articles uniques</p>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 md:px-6 py-4">
                         <StatusDropdown
                           currentStatus={order.status}
-                          onStatusChange={(newStatus) => updateOrderStatus(order.id, newStatus)}
+                          onStatusChange={(newStatus) => updateOrderStatus(order.order_id, newStatus)}
                         />
+                      </td>
+                      <td className="px-4 md:px-6 py-4 text-center">
+                        <button
+                          onClick={() => deleteOrder(order.order_id)}
+                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                          title="Supprimer la commande"
+                        >
+                          <Trash2 size={18} />
+                        </button>
                       </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
+              {orders.length === 0 && !loading && <div className="p-10 text-center text-slate-400">Aucune commande trouvée.</div>}
             </div>
           </div>
         )}
@@ -361,25 +429,29 @@ interface StatusDropdownProps {
 function StatusDropdown({ currentStatus, onStatusChange }: StatusDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const statusConfig: Record<OrderStatus, { color: string; icon: React.ReactNode }> = {
-    Pending: { color: "bg-amber-100 text-amber-700 border-amber-200", icon: <Clock size={14} /> },
-    Confirmed: { color: "bg-green-100 text-green-700 border-green-200", icon: <CheckCircle2 size={14} /> },
-    Canceled: { color: "bg-red-100 text-red-700 border-red-200", icon: <XCircle size={14} /> }
+  const config: Record<string, { color: string; label: string }> = {
+    pending: { color: "bg-amber-100 text-amber-700 border-amber-200", label: "En Attente" },
+    confirmed: { color: "bg-green-100 text-green-700 border-green-200", label: "Confirmé" },
+    canceled: { color: "bg-red-100 text-red-700 border-red-200", label: "Annulé" }
   };
 
-  const options: OrderStatus[] = ['Pending', 'Confirmed', 'Canceled'];
+  const options: OrderStatus[] = ['pending', 'confirmed', 'canceled'];
+
+  const safeConfig = config[currentStatus] || {
+    color: "bg-slate-100 text-slate-700 border-slate-200",
+    label: currentStatus || "Inconnu"
+  };
 
   return (
     <div className="relative w-full">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all hover:shadow-sm ${statusConfig[currentStatus].color}`}
+        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg border text-[10px] font-bold uppercase tracking-wider transition-all hover:shadow-sm ${safeConfig.color}`}
       >
-        <div className="flex items-center gap-2">
-          {statusConfig[currentStatus].icon}
-          {currentStatus}
+        <div className="flex items-center gap-2 whitespace-nowrap">
+          {safeConfig.label}
         </div>
-        <ChevronDown size={14} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown size={14} className={`transition-transform flex-shrink-0 ml-2 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
@@ -395,8 +467,7 @@ function StatusDropdown({ currentStatus, onStatusChange }: StatusDropdownProps) 
                 }}
                 className={`w-full text-left px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-colors flex items-center gap-2 ${currentStatus === option ? 'text-indigo-600 bg-indigo-50' : 'text-slate-600'}`}
               >
-                {statusConfig[option].icon}
-                {option}
+                {config[option].label}
               </button>
             ))}
           </div>
@@ -419,7 +490,7 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
     colors: initialData.colors,
     available_sizes: initialData.available_sizes,
     product_images: initialData.product_images,
-    stock: initialData.stock,
+    stock: initialData.stock ?? 0, // Ensure fallback
     discount: initialData.discount
   } : {
     product_name: '',
@@ -433,7 +504,6 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
 
   const [currentColor, setCurrentColor] = useState('');
   const [currentSize, setCurrentSize] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
   const [uploading, setUploading] = useState(false);
 
   const handleAddColor = () => {
@@ -463,14 +533,12 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
         const fileName = `${Math.random()}.${fileExt}`;
         const filePath = `${Date.now()}-${fileName}`;
 
-        // 1. Upload to Supabase Storage
         const { error: uploadError } = await supabase.storage
           .from('product-images')
           .upload(filePath, file);
 
         if (uploadError) throw uploadError;
 
-        // 2. Get Public URL
         const { data: { publicUrl } } = supabase.storage
           .from('product-images')
           .getPublicUrl(filePath);
@@ -500,7 +568,7 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="md:col-span-2">
+        <div className="">
           <label className="block text-sm font-semibold text-slate-700 mb-2">Nom Produit</label>
           <input
             type="text"
@@ -512,6 +580,7 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
           />
         </div>
 
+      
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">Prix (DZD)</label>
           <div className="relative">
@@ -527,16 +596,21 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
           </div>
         </div>
 
-        {/* <div>
-           <label className="block text-sm font-semibold text-slate-700 mb-2">Initial Stock</label>
-           <input 
-            type="number" 
-            value={formData.stock || ''}
-            onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
-            className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
-            placeholder="0"
-          />
-        </div> */}
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 mb-2">Quantité en Stock</label>
+          <div className="relative">
+            <input
+              type="number"
+              required
+              min="0"
+              value={formData.stock || ''}
+              onChange={(e) => setFormData({ ...formData, stock: parseInt(e.target.value) || 0 })}
+              className="w-full px-4 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+              placeholder="0"
+            />
+            <Layers className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+          </div>
+        </div>
 
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">Remise</label>
@@ -550,8 +624,8 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
         </div>
 
         <div>
-          <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
-            Colors <span className="text-[10px] font-normal text-slate-400">(Saisir pour ajouter)</span>
+          <label className="block text-sm font-semibold text-slate-700 mb-2 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+            Couleurs <span className="text-[10px] font-normal text-slate-400">(Saisir pour ajouter)</span>
           </label>
           <div className="flex gap-2">
             <input
@@ -570,7 +644,7 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
             {formData.colors.map(c => (
               <span key={c} className="px-2 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-md flex items-center gap-1 border border-indigo-100 uppercase">
                 {c}
-                <button type="button" className="hover:text-indigo-900 ml-1" onClick={() => setFormData({ ...formData, colors: formData.colors.filter(x => x !== c) })}>×</button>
+                <button type="button" className="hover:text-indigo-900 ml-1 p-1" onClick={() => setFormData({ ...formData, colors: formData.colors.filter(x => x !== c) })}>×</button>
               </span>
             ))}
           </div>
@@ -592,15 +666,13 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
             </button>
           </div>
           <div className="mt-2 flex flex-wrap gap-2 min-h-[32px]">
-            {/* toReversed() creates a shallow copy, so it won't break your state */}
             {formData.available_sizes.toReversed().map(s => (
               <span key={s} className="px-2 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-md flex items-center gap-1 uppercase border border-slate-200">
                 {s}
                 <button
                   type="button"
-                  className="hover:text-slate-900 ml-1"
+                  className="hover:text-slate-900 ml-1 p-1"
                   onClick={() => {
-                    // No need to reverse inside the filter; just filter the original state
                     setFormData({
                       ...formData,
                       available_sizes: formData.available_sizes.filter(x => x !== s)
@@ -616,7 +688,7 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
 
         <div className="md:col-span-2">
           <label className="block text-sm font-semibold text-slate-700 mb-2">
-            Product Images {uploading && <span className="text-indigo-600 animate-pulse">(Uploading...)</span>}
+            Images du produit {uploading && <span className="text-indigo-600 animate-pulse">(Téléchargement...)</span>}
           </label>
           <div className="flex items-center justify-center w-full">
             <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-200 border-dashed rounded-xl cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors">
@@ -634,7 +706,6 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
               />
             </label>
           </div>
-          {/* Preview Gallery */}
           {formData.product_images.length > 0 && (
             <div className="mt-4 flex gap-3 overflow-x-auto py-2">
               {formData.product_images.map((img, idx) => (
@@ -654,18 +725,18 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
         </div>
       </div>
 
-      <div className="flex gap-4 border-t border-slate-100 pt-8 mt-4">
+      <div className="flex flex-col sm:flex-row gap-4 border-t border-slate-100 pt-8 mt-4">
         <button
           type="submit"
           disabled={uploading}
-          className="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-[0.98]"
+          className="flex-1 bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-[0.98] w-full"
         >
-          {initialData ? 'Update Product' : 'Create Product'}
+          {initialData ? 'Mettre à jour le produit' : 'Créer le produit'}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-6 py-3 border border-slate-200 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-colors"
+          className="px-6 py-3 border border-slate-200 rounded-xl font-bold text-slate-500 hover:bg-slate-50 transition-colors w-full sm:w-auto"
         >
           Annuler
         </button>

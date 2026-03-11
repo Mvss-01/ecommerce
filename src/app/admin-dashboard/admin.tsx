@@ -16,6 +16,9 @@ import {
 } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
+import { Noto_Kufi_Arabic } from 'next/font/google';
+
+
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;

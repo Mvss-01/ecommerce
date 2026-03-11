@@ -179,9 +179,9 @@ export default function Navbar() {
             <nav className="flex flex-col gap-2" dir="rtl">
               {[
                 { label: "الرئيسية", icon: Home, href: "/" },
-                { label: "التصنيفات", icon: Grid, href: "#" },
+                // { label: "التصنيفات", icon: Grid, href: "#" },
                 { label: "سلة التسوق", icon: ShoppingBag, href: "/checkout" },
-                { label: "حالة الطلب", icon: Package, href: "#" },
+                // { label: "حالة الطلب", icon: Package, href: "#" },
                 { label: "تواصل معنا", icon: Phone, href: "#" },
               ].map((item, index) => (
                 <Link

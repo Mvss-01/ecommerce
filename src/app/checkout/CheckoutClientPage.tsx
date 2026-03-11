@@ -43,6 +43,7 @@ export default function CheckoutClientPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [orderID, setOrderID] = useState("");
 
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
@@ -195,7 +196,7 @@ export default function CheckoutClientPage() {
 
           <h2 className="text-3xl font-black text-gray-900 mb-3 tracking-tight">تهانينا! تم استلام طلبك</h2>
           <p className="text-gray-500 mb-10 max-w-sm leading-relaxed">
-            شكراً لتسوقك معنا. رقم طلبك هو <span className="font-bold text-black text-lg">#DZ-{Math.floor(Math.random() * 90000) + 10000}</span>.
+            شكراً لتسوقك معنا. رقم طلبك هو <span className="font-bold text-black text-lg">{orderID}</span><br />
             سيتصل بك موظفونا قريباً لتأكيد الشحن.
           </p>
 
@@ -336,9 +337,10 @@ export default function CheckoutClientPage() {
         {/* CHECKOUT FORM - RIGHT COLUMN */}
         <div className="lg:col-span-5">
           <CheckoutForm
-           cart={cart}
+            cart={cart}
             totalPrice={totalPrice}
             onSuccess={handleOrderSuccess}
+            setOrderID = {setOrderID}
           />
         </div>
       </div>

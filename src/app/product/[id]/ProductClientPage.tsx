@@ -66,7 +66,7 @@ export default function ProductClientPage({ product }: { product: any }) {
         id: `${product.id}-${selectedColor}-${selectedSize}`,
         product_id: product.id,
         product_name: product.product_name,
-        price: product.price,
+        price: finalPrice,
         quantity: quantity,
         selected_color: selectedColor,
         selected_size: selectedSize,
