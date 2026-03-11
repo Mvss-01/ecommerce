@@ -1,6 +1,6 @@
-import React from 'react';
 import { Noto_Kufi_Arabic } from 'next/font/google';
 import Navbar from '@/components/Navbar';
+import React, { Suspense } from 'react'; // 1. Import Suspense
 
 
 const notoKufi = Noto_Kufi_Arabic({
@@ -82,7 +82,9 @@ export default function DeliverySection() {
     <section 
       className={`${notoKufi.className} font-sans bg-[#fcfcfc] min-h-screen py-10 px-5 text-[#1a1a1a] mt-20`}
     >
-      <Navbar />
+      <Suspense fallback={<div className="h-20" />}> 
+        <Navbar />
+      </Suspense>
       <div className="max-w-[800px] mx-auto bg-white p-8 md:p-[60px] border border-[#ececec] shadow-[0_30px_60px_rgba(0,0,0,0.05)]"   dir="rtl">
         
         {/* Header */}
