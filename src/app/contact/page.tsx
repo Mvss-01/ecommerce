@@ -3,7 +3,6 @@
 import React from 'react';
 import { MessageCircle, Instagram, Facebook, ChevronLeft } from 'lucide-react'; import { motion } from 'framer-motion';
 import { Noto_Kufi_Arabic } from 'next/font/google';
-import Link from 'next/link'; // Import Link for navigation
 import Navbar from '@/components/Navbar';
 
 const notoKufi = Noto_Kufi_Arabic({
@@ -44,7 +43,7 @@ const contactLinks: ContactLink[] = [
   },
 ];
 
-const ContactSection = () => {
+export default function ContactSection (){
   return (
     <div
       className={`${notoKufi.className} min-h-screen bg-white flex justify-center items-center p-5 text-[#121212]`}
@@ -92,5 +91,3 @@ const ContactSection = () => {
     </div>
   );
 };
-
-export default ContactSection;
