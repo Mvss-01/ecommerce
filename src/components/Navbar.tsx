@@ -182,7 +182,7 @@ export default function Navbar() {
                 // { label: "التصنيفات", icon: Grid, href: "#" },
                 { label: "سلة التسوق", icon: ShoppingBag, href: "/checkout" },
                 // { label: "حالة الطلب", icon: Package, href: "#" },
-                { label: "تواصل معنا", icon: Phone, href: "#" },
+                { label: "تواصل معنا", icon: Phone, href: "/contact" },
               ].map((item, index) => (
                 <Link
                   key={index}

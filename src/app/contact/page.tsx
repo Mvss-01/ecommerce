@@ -45,7 +45,7 @@ const contactLinks: ContactLink[] = [
 
 export default function ContactSection() {
   return (
-    <div className={`${notoKufi.className} min-h-screen bg-white flex justify-center items-center p-5 text-[#121212]`}>
+    <div className={`${notoKufi.className} min-h-screen bg-white flex justify-center items-center p-5 text-[#121212] mt-20`}>
       <Suspense fallback={<div className="h-20" />}> 
         <Navbar />
       </Suspense>
