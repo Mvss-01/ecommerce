@@ -1,6 +1,6 @@
 "use client";
 
-import React from 'react';
+import React, { Suspense } from 'react'; // 1. Import Suspense
 import { MessageCircle, Instagram, Facebook } from 'lucide-react'; 
 import { motion } from 'framer-motion';
 import { Noto_Kufi_Arabic } from 'next/font/google';
@@ -46,7 +46,9 @@ const contactLinks: ContactLink[] = [
 export default function ContactSection() {
   return (
     <div className={`${notoKufi.className} min-h-screen bg-white flex justify-center items-center p-5 text-[#121212]`}>
-      <Navbar />
+      <Suspense fallback={<div className="h-20" />}> 
+        <Navbar />
+      </Suspense>
 
       <div className="w-full max-w-[450px]">
         <header className="text-center mb-12">
