@@ -1,4 +1,3 @@
-import Image from "next/image";
 import ProductGrid from "@/components/ProductGrid";
 import { Noto_Kufi_Arabic } from 'next/font/google';
 

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
-import { Lock, User, Loader2, AlertCircle } from 'lucide-react'; // Optional: Install lucide-react for icons
+import { Lock, User, Loader2, AlertCircle } from 'lucide-react';
 
 export default function AdminLoginForm() {
   const [username, setUsername] = useState('');
@@ -47,7 +47,7 @@ export default function AdminLoginForm() {
         <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] rounded-full bg-blue-50 blur-[120px]" />
       </div>
 
-      <div className="relative w-full max-w-[400px]">
+      <div className="relative w-full max-w-100">
         <div className="bg-white rounded-2xl border border-gray-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 sm:p-10">
           
           <div className="mb-10 text-center">

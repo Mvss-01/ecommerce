@@ -3,7 +3,7 @@
 // Added new icons for the modern menu layout
 import {
   Search, ShoppingCart, Menu, X, Home,
-  Grid, ShoppingBag, Package, Phone, ChevronLeft
+  ShoppingBag, Phone, ChevronLeft
 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -134,7 +134,7 @@ export default function Navbar() {
 
       {/* --- MODERN MOBILE MENU DRAWER --- */}
       <div
-        className={`fixed inset-0 z-[100] ${isMenuOpen ? "visible" : "invisible"
+        className={`fixed inset-0 z-100 ${isMenuOpen ? "visible" : "invisible"
           } ${notoKufi.className}`}
       >
         <div

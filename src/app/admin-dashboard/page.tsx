@@ -7,8 +7,6 @@ import {
   ShoppingCart,
   Trash2,
   Edit3,
-  CheckCircle2,
-  XCircle,
   Clock,
   Upload,
   ChevronDown,
@@ -241,7 +239,7 @@ export default function App() {
       )}
 
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 right-0 z-50 w-64 bg-white border-l md:border-l-0 md:border-r border-slate-200 flex flex-col h-screen transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:sticky md:top-0 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 right-0 z-50 w-64 bg-white border-l md:border-l-0 md:border-r border-slate-200 flex flex-col h-screen transform transition-transform duration-300 ease-in-out md:translate-x-0 md:static md:top-0 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="p-6 flex justify-between items-center">
           <Link href="/" className="text-2xl font-bold tracking-tight text-indigo-600 flex items-center gap-2">
             <Package size={28} />
@@ -313,7 +311,7 @@ export default function App() {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
             {products.map(product => (
               <div key={product.id} className="bg-white rounded-2xl border border-slate-200 overflow-hidden group hover:shadow-lg transition-all">
-                <div className="h-120 sm:h-80 bg-slate-100 relative overflow-hidden">
+                <div className="h-120 sm:h-110 bg-slate-100 relative overflow-hidden">
                   <img src={product.product_images[0]} alt={product.product_name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                   <div className="absolute top-2 right-2 flex gap-2">
                     <button
@@ -367,14 +365,14 @@ export default function App() {
         {activeTab === 'orders' && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col w-full">
             <div className="overflow-x-auto w-full pb-27">
-              <table className={`w-full text-left border-collapse min-w-[1000px] xl:min-w-full ${notoKufi.className}`}>
+              <table className={`w-full text-left border-collapse min-w-250 xl:min-w-full ${notoKufi.className}`}>
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
                     <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Commande</th>
                     <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase">Produits</th>
                     <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Client</th>
                     <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Numéro</th>
-                    <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase min-w-[200px] xl:min-w-50">Adresse</th>
+                    <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase min-w-50 xl:min-w-50">Adresse</th>
                     <th className="px-4 py-4 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Type de livraison</th>
                     <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Total</th>
                     <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase w-30 whitespace-nowrap">Statut</th>
@@ -390,7 +388,7 @@ export default function App() {
                           <Clock size={10} /> {new Date(order.created_at).toLocaleDateString()}
                         </div>
                       </td>
-                      <td className="px-4 md:px-6 py-4 min-w-[200px]">
+                      <td className="px-4 md:px-6 py-4 min-w-50">
                         <div className="space-y-3">
                           {order.products.map((item, idx) => (
                             <div key={idx} className="flex flex-col border-l-2 border-indigo-100 pl-3">
@@ -406,7 +404,7 @@ export default function App() {
                       </td>
                       <td className="px-4 md:px-6 py-4 font-bold text-sm text-slate-700 whitespace-nowrap">{order.client_name}</td>
                       <td className="px-4 md:px-6 py-4 text-sm font-bold text-slate-700 whitespace-nowrap">{order.phone_number}</td>
-                      <td className="px-4 md:px-6 py-4 text-[14px] md:text-[15px] text-black xl:max-w-none break-words leading-tight">{order.adress}</td>
+                      <td className="px-4 md:px-6 py-4 text-[14px] md:text-[15px] text-black xl:max-w-none wrap-break-word leading-tight">{order.adress}</td>
                       <td className="px-4 md:px-6 py-4">
                         <span className="inline-block px-2 py-1 bg-slate-100 text-[10px] rounded font-bold uppercase text-slate-600 whitespace-nowrap">{order.delivery_type}</span>
                       </td>
@@ -473,7 +471,7 @@ function StatusDropdown({ currentStatus, onStatusChange }: StatusDropdownProps) 
         <div className="flex items-center gap-2 whitespace-nowrap">
           {safeConfig.label}
         </div>
-        <ChevronDown size={14} className={`transition-transform flex-shrink-0 ml-2 ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown size={14} className={`transition-transform shrink-0 ml-2 ${isOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {isOpen && (
@@ -662,7 +660,7 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
               <PlusCircle size={20} className="text-slate-600" />
             </button>
           </div>
-          <div className="mt-2 flex flex-wrap gap-2 min-h-[32px]">
+          <div className="mt-2 flex flex-wrap gap-2 min-h-8">
             {formData.colors.map(c => (
               <span key={c} className="px-2 py-1 bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-md flex items-center gap-1 border border-indigo-100 uppercase">
                 {c}
@@ -687,7 +685,7 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
               <PlusCircle size={20} className="text-slate-600" />
             </button>
           </div>
-          <div className="mt-2 flex flex-wrap gap-2 min-h-[32px]">
+          <div className="mt-2 flex flex-wrap gap-2 min-h-8">
             {formData.available_sizes.toReversed().map(s => (
               <span key={s} className="px-2 py-1 bg-slate-100 text-slate-700 text-[10px] font-bold rounded-md flex items-center gap-1 uppercase border border-slate-200">
                 {s}
@@ -731,7 +729,7 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
           {formData.product_images.length > 0 && (
             <div className="mt-4 flex gap-3 overflow-x-auto py-2">
               {formData.product_images.map((img, idx) => (
-                <div key={idx} className="relative w-20 h-20 flex-shrink-0 rounded-lg border border-slate-200 overflow-hidden group">
+                <div key={idx} className="relative w-20 h-20 shrink-0 rounded-lg border border-slate-200 overflow-hidden group">
                   <img src={img} className="w-full h-full object-cover" alt="Preview" />
                   <button
                     type="button"

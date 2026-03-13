@@ -20,7 +20,7 @@ export default function ProductCard({ id, name, price, oldPrice, product_discoun
       <div className="flex flex-col w-full bg-white rounded-2xl border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-gray-300 scale-90 md:scale-100">
 
         {/* Image Container */}
-        <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden">
+        <div className="relative aspect-4/5 bg-gray-50 overflow-hidden">
           {/* Discount Badge */}
           {discount ? (
             <div className="absolute top-3 right-3 z-10 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-sm">

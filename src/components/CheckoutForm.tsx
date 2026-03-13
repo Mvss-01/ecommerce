@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
     FaUser, FaPhoneAlt, FaLayerGroup, FaBuilding,
-    FaShoppingCart, FaLocationArrow, FaCheckCircle, FaArrowRight
+    FaShoppingCart, FaCheckCircle, FaArrowRight
 } from 'react-icons/fa';
 import { createClient } from '@supabase/supabase-js';
 import { getWilayaList, getBaladyiatsForWilaya } from '@dzcode-io/leblad';

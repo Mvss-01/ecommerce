@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { ChevronRight, ChevronLeft, Plus, Minus } from "lucide-react";
-import Image from "next/image";
 
 export default function ProductPage() {
   const [quantity, setQuantity] = useState(1);
@@ -69,7 +68,7 @@ export default function ProductPage() {
                   <div
                     className={`w-8 h-8 rounded-full border-2 transition-all ${
                       selectedColor === color.id
-                        ? "border-gray-800 p-[2px]"
+                        ? "border-gray-800 p-0.5"
                         : "border-transparent"
                     }`}
                   >
@@ -140,7 +139,7 @@ export default function ProductPage() {
           {/* Bottom Left Optional Image (As seen in the original screenshot) */}
           <div className="w-full h-64 bg-gray-200 rounded-xl overflow-hidden relative mt-4">
              {/* Replace with actual secondary image */}
-             <div className="absolute inset-0 bg-gradient-to-t from-gray-500 to-gray-300 flex items-center justify-center text-white">
+             <div className="absolute inset-0 bg-linear-to-t from-gray-500 to-gray-300 flex items-center justify-center text-white">
                 Secondary Model Image
              </div>
           </div>
@@ -148,7 +147,7 @@ export default function ProductPage() {
 
         {/* RIGHT COLUMN: Main Image Carousel */}
         <div className="relative order-1 lg:order-2">
-          <div className="relative w-full aspect-[4/5] bg-[#a8a19b] rounded-2xl overflow-hidden group shadow-sm">
+          <div className="relative w-full aspect-4/5 bg-[#a8a19b] rounded-2xl overflow-hidden group shadow-sm">
             
             {/* Placeholder for the actual main product image */}
             <div className="absolute inset-0 flex items-center justify-center flex-col">

@@ -128,7 +128,7 @@ export default function ProductClientPage({ product }: { product: any }) {
           <div className="lg:col-span-6 flex flex-col gap-4 items-center lg:items-start">
 
             {/* Main Image Container */}
-            <div className="relative w-full max-w-[500px] lg:max-w-none aspect-4/5 sm:aspect-square lg:aspect-[4/5] bg-gray-50 rounded-3xl overflow-hidden group border border-gray-100 mx-auto lg:mx-0">
+            <div className="relative w-full max-w-125 lg:max-w-none aspect-4/5 sm:aspect-square lg:aspect-[4/5] bg-gray-50 rounded-3xl overflow-hidden group border border-gray-100 mx-auto lg:mx-0">
               <img
                 src={product.product_images[currentImgIndex]}
                 alt={product.product_name}

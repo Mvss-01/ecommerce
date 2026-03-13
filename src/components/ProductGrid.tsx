@@ -35,7 +35,7 @@ export default async function Home({
     <main className="min-h-screen bg-white flex flex-col justify-between">
       <Navbar />
 
-      <div className="flex-grow container mx-auto px-4 pb-10 mt-20" dir="rtl"></div>
+      <div className="grow container mx-auto px-4 pb-10 mt-20" dir="rtl"></div>
 
       {/* Hero Section */}
       {/* <section className="container mx-auto px-4 py-12 text-black flex flex-col items-end">

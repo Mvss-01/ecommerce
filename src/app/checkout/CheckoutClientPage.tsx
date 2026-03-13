@@ -208,7 +208,7 @@ const handleOrderSuccess = async () => {
         <div className="max-w-xl w-full bg-white p-8 md:p-12 rounded-[3rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-gray-100 flex flex-col items-center text-center relative overflow-hidden animate-in fade-in zoom-in duration-700">
 
           {/* Subtle Background Pattern */}
-          <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-green-400 via-emerald-500 to-green-400" />
+          <div className="absolute top-0 left-0 w-full h-2 bg-linear-to-r from-green-400 via-emerald-500 to-green-400" />
 
           {/* Animated Checkmark Section */}
           <div className="relative mb-8">
@@ -239,7 +239,7 @@ const handleOrderSuccess = async () => {
               </div>
             ))}
             {/* Connecting Lines */}
-            <div className="absolute top-5 right-[20%] left-[20%] h-[2px] bg-gray-100 -z-10"></div>
+            <div className="absolute top-5 right-[20%] left-[20%] h-0.5 bg-gray-100 -z-10"></div>
           </div>
 
           {/* Action Section */}

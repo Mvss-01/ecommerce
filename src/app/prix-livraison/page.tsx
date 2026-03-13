@@ -1,7 +1,6 @@
 import { Noto_Kufi_Arabic } from 'next/font/google';
 import Navbar from '@/components/Navbar';
-import React, { Suspense } from 'react'; // 1. Import Suspense
-
+import { Suspense } from 'react';
 
 const notoKufi = Noto_Kufi_Arabic({
   subsets: ['arabic'],
@@ -85,14 +84,14 @@ export default function DeliverySection() {
       <Suspense fallback={<div className="h-20" />}> 
         <Navbar />
       </Suspense>
-      <div className="max-w-[800px] mx-auto bg-white p-8 md:p-[60px] border border-[#ececec] shadow-[0_30px_60px_rgba(0,0,0,0.05)]"   dir="rtl">
+      <div className="max-w-200 mx-auto bg-white p-8 md:p-15 border border-[#ececec] shadow-[0_30px_60px_rgba(0,0,0,0.05)]"   dir="rtl">
         
         {/* Header */}
-        <header className="text-center mb-[60px]">
-          <h1 className=" text-4xl md:text-[3rem] mb-[10px] leading-tight">
+        <header className="text-center mb-15">
+          <h1 className=" text-4xl md:text-[3rem] mb-2.5 leading-tight">
             أسعار التوصيل
           </h1>
-          <div className="w-[50px] h-[0.5px] bg-black mx-auto mt-5"></div>
+          <div className="w-12.5 h-[0.5px] bg-black mx-auto mt-5"></div>
         </header>
 
         {/* Table Container */}
@@ -110,7 +109,7 @@ export default function DeliverySection() {
             {deliveryData.map((item, index) => (
               <div 
                 key={index} 
-                className="grid grid-cols-[1.5fr_1fr_1fr] md:grid-cols-[2fr_1fr_1fr] py-[18px] transition-all duration-300 ease-in-out hover:bg-[#fbfbfb] hover:pr-[10px]"
+                className="grid grid-cols-[1.5fr_1fr_1fr] md:grid-cols-[2fr_1fr_1fr] py-4.5 transition-all duration-300 ease-in-out hover:bg-[#fbfbfb] hover:pr-2.5"
               >
                 <span className="text-base font-semibold">{item.state}</span>
                 <span className="text-base text-[#555]">{item.homePrice}</span>
