@@ -13,22 +13,24 @@ import {
   Upload,
   ChevronDown,
   Layers,
+  LogOut,
   Menu,
   X
 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
 import { Noto_Kufi_Arabic } from 'next/font/google';
+import { useRouter } from 'next/navigation';
+import { createBrowserClient } from '@supabase/ssr'
 
 const notoKufi = Noto_Kufi_Arabic({
   subsets: ['arabic'],
   weight: ['400', '700']
 });
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
-
+ const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 // --- Types & Interfaces ---
 
 type OrderStatus = 'pending' | 'confirmed' | 'canceled';
@@ -67,6 +69,7 @@ interface Order {
 // --- Main App Component ---
 
 export default function App() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<'Inventaire' | 'orders' | 'ajoute-produits'>('Inventaire');
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,6 +91,16 @@ export default function App() {
       setProducts(data || []);
     }
     setLoading(false);
+  };
+
+  const handleLogout = async () => {
+      const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("Logout error:", error.message);
+    } else {
+      router.push('/admin-login'); // Redirect to your login page
+      router.refresh();
+    }
   };
 
   useEffect(() => {
@@ -266,13 +279,22 @@ export default function App() {
           </button>
         </nav>
 
-        <div className="p-4 border-t border-slate-100">
+        <div className="p-4 border-t border-slate-100 space-y-2">
           <div className="flex items-center gap-3 px-4 py-3 text-slate-500">
             <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-bold text-slate-600">DZ</div>
             <div className="text-sm">
               <p className="font-medium text-slate-800">Admin User</p>
             </div>
           </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all font-semibold"
+          >
+            <LogOut size={20} />
+            Déconnexion
+          </button>
         </div>
       </aside>
 
@@ -344,8 +366,8 @@ export default function App() {
 
         {activeTab === 'orders' && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col w-full">
-            <div className="overflow-x-auto w-full">
-              <table className={`w-full text-left border-collapse min-h-[300px] min-w-[1000px] xl:min-w-full ${notoKufi.className}`}>
+            <div className="overflow-x-auto w-full pb-27">
+              <table className={`w-full text-left border-collapse min-w-[1000px] xl:min-w-full ${notoKufi.className}`}>
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
                     <th className="px-4 md:px-6 py-4 text-xs font-bold text-slate-500 uppercase whitespace-nowrap">Commande</th>
@@ -580,7 +602,7 @@ function ProductForm({ onSave, initialData, onCancel }: ProductFormProps) {
           />
         </div>
 
-      
+
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">Prix (DZD)</label>
           <div className="relative">

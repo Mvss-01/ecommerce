@@ -1,17 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
-  Trash2, Plus, Minus, ShoppingBag, ArrowRight, Check,
-  User, Phone, MapPin, ShieldCheck
+  Trash2, Plus, Minus, ShoppingBag, ArrowRight, Check
 } from "lucide-react";
-import {
-  FaUser, FaPhoneAlt, FaLayerGroup, FaBuilding,
-  FaInstagram, FaShoppingCart, FaLocationArrow, FaCheckCircle, FaArrowRight
-} from 'react-icons/fa';
 import { useRouter } from "next/navigation";
 import { Noto_Kufi_Arabic } from 'next/font/google';
 import CheckoutForm from "@/components/CheckoutForm";
+import { createClient } from '@supabase/supabase-js';
+
+// Initialize Supabase Client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 // 1. Initialize the font outside the component
 const notoKufi = Noto_Kufi_Arabic({
@@ -63,25 +64,48 @@ export default function CheckoutClientPage() {
     localStorage.setItem("totalPrice", total.toString());
   }, [cart]);
 
-  const handleOrderSuccess = () => {
-    // 1. Clear the State
-    setCart([]);
+// Add this import if not already there
 
-    // 2. Clear LocalStorage
+const handleOrderSuccess = async () => {
+  setIsSubmitting(true); // Start loading state
+
+  try {
+    // 1. Create an array of update promises
+    // We loop through the cart and tell Supabase to decrement the stock
+    const stockUpdatePromises = cart.map((item) => {
+      return supabase
+        .from('hmed-ecommerce')
+        .update({ 
+          // We calculate the new stock: current stock minus quantity bought
+          stock: item.stock - item.quantity 
+        })
+        .eq('id', item.product_id); // Match the product ID
+    });
+
+    // 2. Execute all updates simultaneously
+    const results = await Promise.all(stockUpdatePromises);
+
+    // 3. Check for errors in any of the updates
+    const hasError = results.some(result => result.error);
+    if (hasError) {
+      console.error("One or more stock updates failed");
+    }
+
+    setCart([]);
     localStorage.removeItem("cart");
     localStorage.removeItem("totalPrice");
 
-    // 3. Notify other components (like a Navbar cart counter)
     window.dispatchEvent(new Event("cartUpdated"));
 
-    // 4. Show the success state
     setSubmitted(true);
 
-    // 5. Optional: Redirect to home after 5 seconds
-    // setTimeout(() => {
-    //   router.push("/");
-    // }, 5000);
-  };
+  } catch (error) {
+    console.error("Error during checkout process:", error);
+    alert("حدث خطأ أثناء معالجة الطلب. يرجى المحاولة مرة أخرى.");
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
 
   const handleQuantityChange = (itemId: string, newQuantity: number) => {
