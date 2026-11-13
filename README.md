@@ -31,7 +31,7 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 ## Guepex delivery checkout
 
-Set `X-API-ID` and `X-API-TOKEN` as server-side environment variables in `.env.local` and your deployment environment. Do not expose them with the `NEXT_PUBLIC_` prefix. Delivery fees currently use Tizi Ouzou (wilaya ID `15`) as the Guepex origin.
+Set `X_API_ID` and `X_API_TOKEN` as server-side environment variables in `.env.local` and your deployment environment. Do not expose them with the `NEXT_PUBLIC_` prefix. Delivery fees currently use Tizi Ouzou (wilaya ID `15`) as the Guepex origin.
 
 ## Deploy on Vercel
 

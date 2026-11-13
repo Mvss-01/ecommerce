@@ -42,8 +42,8 @@ async function requestGuepex<T>(
     params: Record<string, string>,
     revalidate: number,
 ): Promise<T> {
-    const apiId = process.env["X-API-ID"];
-    const apiToken = process.env["X-API-TOKEN"];
+    const apiId = process.env.X_API_ID;
+    const apiToken = process.env.X_API_TOKEN;
 
     if (!apiId || !apiToken) {
         throw new GuepexRequestError("Guepex API credentials are not configured", 503);
@@ -169,7 +169,7 @@ export async function GET(request: Request) {
         console.error("Guepex checkout request failed:", error);
         const status = error instanceof GuepexRequestError ? error.status : 502;
         const message = status === 401 || status === 403
-            ? "رفضت Guepex بيانات الاعتماد. تحقق من X-API-ID وX-API-TOKEN."
+            ? "رفضت Guepex بيانات الاعتماد. تحقق من X_API_ID وX_API_TOKEN."
             : status === 503
                 ? "بيانات اعتماد Guepex غير مهيأة على الخادم."
                 : "تعذر تحميل بيانات التوصيل. يرجى المحاولة مرة أخرى.";
