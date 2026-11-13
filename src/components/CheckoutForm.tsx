@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     FaUser, FaPhoneAlt, FaLayerGroup, FaBuilding,
     FaShoppingCart, FaCheckCircle, FaArrowRight
@@ -14,104 +14,68 @@ const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
+const localWilayaNames = new Map<number, string>(
+    getWilayaList().map((wilaya: { mattricule: number; name_ar: string }) => [
+        wilaya.mattricule,
+        wilaya.name_ar,
+    ] as const),
+);
+
 interface CheckoutFormProps {
-    cart: any[];
+    cart: Array<{
+        product_name: string;
+        quantity: number;
+        selected_color: string;
+        selected_size: string;
+        price: number;
+    }>;
     totalPrice: number;
     onSuccess: () => void;
     setOrderID: React.Dispatch<React.SetStateAction<string>>;
 }
 
-interface WilayaOption {
+interface GuepexWilaya {
     id: number;
     name: string;
-    originalName: string;
 }
 
-const deliveryRates: Record<string, { home: number; office: number }> = {
-    "1": { home: 1600, office: 800 },    // Adrar
-    "2": { home: 850, office: 450 },     // Chlef
-    "3": { home: 1100, office: 600 },    // Laghouat
-    "4": { home: 900, office: 400 },     // Oum El Bouaghi
-    "5": { home: 900, office: 400 },     // Batna
-    "6": { home: 850, office: 400 },     // Béjaïa
-    "7": { home: 1100, office: 600 },    // Biskra
-    "8": { home: 1400, office: 600 },    // Béchar
-    "9": { home: 800, office: 400 },     // Blida
-    "10": { home: 850, office: 400 },    // Bouira
-    "11": { home: 1600, office: 1000 },  // Tamanrasset
-    "12": { home: 1100, office: 600 },   // Tébessa
-    "13": { home: 850, office: 400 },    // Tlemcen
-    "14": { home: 850, office: 400 },    // Tiaret
-    "15": { home: 750, office: 350 },    // Tizi Ouzou
-    "16": { home: 750, office: 350 },    // Alger
-    "17": { home: 1100, office: 600 },   // Djelfa
-    "18": { home: 950, office: 400 },    // Jijel
-    "19": { home: 900, office: 400 },    // Sétif
-    "20": { home: 850, office: 400 },    // Saïda
-    "21": { home: 950, office: 400 },    // Skikda
-    "22": { home: 850, office: 350 },    // Sidi Bel Abbès
-    "23": { home: 900, office: 400 },    // Annaba
-    "24": { home: 950, office: 400 },    // Guelma
-    "25": { home: 900, office: 400 },    // Constantine
-    "26": { home: 850, office: 400 },    // Médéa
-    "27": { home: 850, office: 350 },    // Mostaganem
-    "28": { home: 900, office: 400 },    // M'Sila
-    "29": { home: 850, office: 350 },    // Mascara
-    "30": { home: 1250, office: 600 },   // Ouargla
-    "31": { home: 850, office: 400 },    // Oran
-    "32": { home: 1100, office: 600 },   // El Bayadh
-    "33": { home: 1800, office: 1200 },  // Illizi
-    "34": { home: 900, office: 400 },    // Bordj Bou Arreridj
-    "35": { home: 800, office: 400 },    // Boumerdès
-    "36": { home: 1000, office: 400 },   // El Tarf
-    "37": { home: 1600, office: 1000 },  // Tindouf
-    "38": { home: 850, office: 400 },    // Tissemsilt
-    "39": { home: 1200, office: 600 },   // El Oued
-    "40": { home: 1000, office: 400 },   // Khenchela
-    "41": { home: 1000, office: 400 },   // Souk Ahras
-    "42": { home: 850, office: 350 },    // Tipaza
-    "43": { home: 1000, office: 400 },   // Mila
-    "44": { home: 900, office: 400 },    // Aïn Defla
-    "45": { home: 1400, office: 800 },   // Naâma
-    "46": { home: 950, office: 400 },    // Aïn Témouchent
-    "47": { home: 1200, office: 600 },   // Ghardaïa
-    "48": { home: 950, office: 400 },    // Relizane
-    "49": { home: 1600, office: 800 },   // Timimoun
-    "50": { home: 2000, office: 1500 },  // Bordj Badji Mokhtar
-    "51": { home: 1100, office: 600 },   // Ouled Djellal
-    "52": { home: 1400, office: 600 },   // Béni Abbès
-    "53": { home: 1600, office: 1000 },  // In Salah
-    "54": { home: 1600, office: 1000 },  // In Guezzam
-    "55": { home: 1200, office: 600 },   // Touggourt
-    "56": { home: 1800, office: 1200 },  // Djanet
-    "57": { home: 1200, office: 600 },   // El M'Ghair
-    "58": { home: 1200, office: 600 },   // El Meniaa
-};
+interface GuepexCommune {
+    id: number;
+    name: string;
+}
+
+interface DeliveryFees {
+    home: number;
+    office: number;
+}
+
+async function fetchGuepex<T>(url: string, signal: AbortSignal): Promise<T> {
+    const response = await fetch(url, { signal });
+    const result: unknown = await response.json();
+
+    if (!response.ok) {
+        const errorMessage = (
+            typeof result === "object"
+            && result !== null
+            && "error" in result
+            && typeof result.error === "string"
+        ) ? result.error : "تعذر تحميل بيانات التوصيل.";
+        throw new Error(errorMessage);
+    }
+
+    return result as T;
+}
 
 export default function CheckoutForm({ cart, totalPrice, onSuccess, setOrderID }: CheckoutFormProps) {
-    // 1. SAFELY Get the list of all wilayas with unique keys and defensive checks
-    const wilayaOptions: WilayaOption[] = useMemo(() => {
-        const list = getWilayaList();
-        console.log("Debug Leblad Data:", list[0]); // Check your console to see the real keys!
-
-        if (!list) return [];
-
-        return list.map((w: any, index: number) => {
-            // Try to find the ID in common property names used by the library
-            const rawId = w.matricule || w.id || w.code || (index + 1);
-            const strId = String(rawId);
-
-            return {
-                id: parseInt(strId),
-                // This will now show the 2-digit number followed by the name
-                name: `${strId.padStart(2, '0')} - ${w.name_ar || 'ولاية غير معروفة'}`,
-                originalName: w.name_ar || ''
-            };
-        });
-    }, []);
-
     const [selectedWilaya, setSelectedWilaya] = useState("");
-    const [communes, setCommunes] = useState<any[]>([]);
+    const [wilayaOptions, setWilayaOptions] = useState<GuepexWilaya[]>([]);
+    const [communes, setCommunes] = useState<GuepexCommune[]>([]);
+    const [deliveryFees, setDeliveryFees] = useState<DeliveryFees | null>(null);
+    const [isLoadingWilayas, setIsLoadingWilayas] = useState(true);
+    const [isLoadingCommunes, setIsLoadingCommunes] = useState(false);
+    const [isLoadingFees, setIsLoadingFees] = useState(false);
+    const [locationError, setLocationError] = useState("");
+    const [feesError, setFeesError] = useState("");
     const [phoneError, setPhoneError] = useState("");
     const [deliveryType, setDeliveryType] = useState("domocile");
     const [generatedOrderId, setGeneratedOrderId] = useState("");
@@ -126,37 +90,117 @@ export default function CheckoutForm({ cart, totalPrice, onSuccess, setOrderID }
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
 
-    // 2. Fetch Baladiyat whenever selectedWilaya changes
     useEffect(() => {
-        if (selectedWilaya) {
-            const matricule = parseInt(selectedWilaya);
-            try {
-                const baladiyats = getBaladyiatsForWilaya(matricule);
-                setCommunes(baladiyats || []);
-            } catch (err) {
-                console.error("Error fetching communes:", err);
-                setCommunes([]);
-            }
-        } else {
-            setCommunes([]);
-        }
-        // Reset commune selection when wilaya changes
+        const controller = new AbortController();
+        fetchGuepex<{ data: GuepexWilaya[] }>("/api/guepex?resource=wilayas", controller.signal)
+            .then(({ data }) => {
+                if (!Array.isArray(data)) throw new Error("تعذر تحميل قائمة الولايات.");
+                setWilayaOptions(data.map(wilaya => ({
+                    ...wilaya,
+                    name: localWilayaNames.get(wilaya.id) ?? wilaya.name,
+                })));
+            })
+            .catch((error: unknown) => {
+                if (controller.signal.aborted) return;
+                console.error("Error fetching Guepex wilayas:", error);
+                setLocationError(error instanceof Error ? error.message : "تعذر تحميل قائمة الولايات.");
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) setIsLoadingWilayas(false);
+            });
+        return () => controller.abort();
+    }, []);
+
+    useEffect(() => {
+        setCommunes([]);
+        setDeliveryFees(null);
+        setLocationError("");
+        setFeesError("");
         setFormData(prev => ({ ...prev, commune: "" }));
+        if (!selectedWilaya) {
+            setIsLoadingCommunes(false);
+            return;
+        }
+
+        const controller = new AbortController();
+        setIsLoadingCommunes(true);
+        fetchGuepex<{ data: GuepexCommune[] }>(
+            `/api/guepex?resource=communes&wilayaId=${selectedWilaya}`,
+            controller.signal,
+        )
+            .then(({ data }) => {
+                if (!Array.isArray(data)) throw new Error("تعذر تحميل قائمة البلديات.");
+                const localCommuneNames = new Map<number, string>(
+                    getBaladyiatsForWilaya(Number(selectedWilaya))
+                        .map((commune: { code: number; name_ar: string }) => [
+                            commune.code,
+                            commune.name_ar,
+                        ] as const),
+                );
+                setCommunes(data.map(commune => ({
+                    ...commune,
+                    name: localCommuneNames.get(commune.id) ?? commune.name,
+                })));
+            })
+            .catch((error: unknown) => {
+                if (controller.signal.aborted) return;
+                console.error("Error fetching Guepex communes:", error);
+                setLocationError(error instanceof Error ? error.message : "تعذر تحميل قائمة البلديات.");
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) setIsLoadingCommunes(false);
+            });
+        return () => controller.abort();
     }, [selectedWilaya]);
 
-    const getDeliveryPrice = () => {
-        if (!selectedWilaya) return 0;
+    useEffect(() => {
+        setDeliveryFees(null);
+        setFeesError("");
+        if (!selectedWilaya || !formData.commune) {
+            setIsLoadingFees(false);
+            return;
+        }
 
-        // selectedWilaya is the ID (1, 2, 3...)
-        const rate = deliveryRates[selectedWilaya];
+        const controller = new AbortController();
+        setIsLoadingFees(true);
+        fetchGuepex<{ data: DeliveryFees }>(
+            `/api/guepex?resource=fees&wilayaId=${selectedWilaya}&communeId=${formData.commune}`,
+            controller.signal,
+        )
+            .then(({ data }) => {
+                if (typeof data?.home !== "number" || typeof data?.office !== "number") {
+                    throw new Error("لا تتوفر أسعار توصيل لهذه البلدية.");
+                }
+                setDeliveryFees(data);
+            })
+            .catch((error: unknown) => {
+                if (controller.signal.aborted) return;
+                console.error("Error fetching Guepex delivery fees:", error);
+                setFeesError(error instanceof Error ? error.message : "تعذر حساب سعر التوصيل.");
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) setIsLoadingFees(false);
+            });
+        return () => controller.abort();
+    }, [selectedWilaya, formData.commune]);
 
-        if (!rate) return 0;
-
-        return deliveryType === "domocile" ? rate.home : rate.office;
-    };
-
-    const deliveryPrice = getDeliveryPrice();
+    const selectedWilayaDetails = wilayaOptions.find(
+        wilaya => String(wilaya.id) === selectedWilaya,
+    );
+    const selectedCommuneDetails = communes.find(
+        commune => String(commune.id) === formData.commune,
+    );
+    const deliveryPrice = deliveryFees
+        ? deliveryType === "domocile" ? deliveryFees.home : deliveryFees.office
+        : 0;
     const finalTotal = totalPrice + deliveryPrice;
+
+    const getSelectedDeliveryLabel = () => {
+        if (isLoadingFees) return "جارٍ حساب السعر...";
+        if (feesError) return "تعذر حساب السعر";
+        if (!selectedWilaya || !formData.commune) return "حدد الولاية والبلدية أولاً";
+        return `${deliveryPrice} دج`;
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -164,6 +208,11 @@ export default function CheckoutForm({ cart, totalPrice, onSuccess, setOrderID }
 
         if (!cart || cart.length === 0) {
             alert("سلة التسوق فارغة");
+            return;
+        }
+
+        if (!deliveryFees) {
+            setFeesError("يرجى انتظار حساب سعر التوصيل قبل تأكيد الطلب.");
             return;
         }
 
@@ -179,8 +228,7 @@ export default function CheckoutForm({ cart, totalPrice, onSuccess, setOrderID }
         const orderId = `ORD-${shortId}`;
         setGeneratedOrderId(orderId);
 
-        const currentWilaya = wilayaOptions.find(w => w.id.toString() === selectedWilaya);
-        const fullAddress = `${currentWilaya?.originalName || ''}, ${formData.commune}`;
+        const fullAddress = `${selectedWilayaDetails?.name || ''}, ${selectedCommuneDetails?.name || ''}`;
 
         try {
             const formattedProducts = cart.map(item => ({
@@ -308,13 +356,20 @@ export default function CheckoutForm({ cart, totalPrice, onSuccess, setOrderID }
                         <FaLayerGroup className="text-gray-400 ml-3" />
                         <select
                             className="w-full outline-none text-sm bg-transparent cursor-pointer text-black"
-                            onChange={(e) => setSelectedWilaya(e.target.value)}
+                            onChange={(e) => {
+                                setDeliveryFees(null);
+                                setSelectedWilaya(e.target.value);
+                            }}
                             value={selectedWilaya}
                             required
                         >
-                            <option value="">اختر الولاية</option>
-                            {wilayaOptions.map((w) => (
-                                <option key={`wil-opt-${w.id}`} value={w.id}>{w.name}</option>
+                            <option value="">
+                                {isLoadingWilayas ? "جارٍ تحميل الولايات..." : "اختر الولاية"}
+                            </option>
+                            {wilayaOptions.map((wilaya) => (
+                                <option key={wilaya.id} value={wilaya.id}>
+                                    {String(wilaya.id).padStart(2, "0")} - {wilaya.name}
+                                </option>
                             ))}
                         </select>
                     </div>
@@ -326,18 +381,34 @@ export default function CheckoutForm({ cart, totalPrice, onSuccess, setOrderID }
                             className="w-full outline-none text-sm bg-transparent cursor-pointer text-black"
                             required
                             value={formData.commune}
-                            onChange={(e) => setFormData({ ...formData, commune: e.target.value })}
-                            disabled={!selectedWilaya}
+                            onChange={(e) => {
+                                setDeliveryFees(null);
+                                setFormData({ ...formData, commune: e.target.value });
+                            }}
+                            disabled={!selectedWilaya || isLoadingCommunes}
                         >
-                            <option value="">{selectedWilaya ? "اختر البلدية" : "اختر الولاية أولاً"}</option>
-                            {communes.map((c, index) => (
-                                <option key={`com-opt-${index}-${c.name_en || 'c'}`} value={c.name_ar}>
-                                    {c.name_ar}
+                            <option value="">
+                                {isLoadingCommunes
+                                    ? "جارٍ تحميل البلديات..."
+                                    : selectedWilaya ? "اختر البلدية" : "اختر الولاية أولاً"}
+                            </option>
+                            {communes.map((commune) => (
+                                <option key={commune.id} value={commune.id}>
+                                    {commune.name}
                                 </option>
                             ))}
                         </select>
                     </div>
                 </div>
+
+                {(locationError || (!isLoadingWilayas && wilayaOptions.length === 0)) && (
+                    <p className="text-red-500 text-xs" role="alert">
+                        {locationError || "لا توجد ولايات متاحة للتوصيل حالياً."}
+                    </p>
+                )}
+                {feesError && (
+                    <p className="text-red-500 text-xs" role="alert">{feesError}</p>
+                )}
 
                 {/* <div className="flex items-center border border-gray-100 rounded-2xl p-4 bg-gray-50 focus-within:bg-white focus-within:border-black transition-all">
                     <FaLocationArrow className="text-gray-400 ml-3" />
@@ -352,7 +423,7 @@ export default function CheckoutForm({ cart, totalPrice, onSuccess, setOrderID }
                 </div> */}
 
                 <div className="py-2">
-                    <h3 className="text-sm font-bold text-gray-700 mb-3">نوع التوصيل (Yalidine)</h3>
+                    <h3 className="text-sm font-bold text-gray-700 mb-3">نوع التوصيل (Guepex)</h3>
                     <div className="flex gap-4">
                         {['domocile', 'bureau'].map((type) => (
                             <label key={type} className={`flex-1 flex items-center justify-center gap-2 p-3 border rounded-xl cursor-pointer transition-all ${deliveryType === type ? 'bg-black text-white' : 'bg-white text-black border-gray-100'}`}>
@@ -366,7 +437,13 @@ export default function CheckoutForm({ cart, totalPrice, onSuccess, setOrderID }
                                 />
                                 <span className="text-sm font-medium">
                                     {type === 'domocile' ? 'المنزل' : 'المكتب'}
-                                </span>                            </label>
+                                    {deliveryFees && (
+                                        <span className="block text-xs font-normal">
+                                            {type === 'domocile' ? deliveryFees.home : deliveryFees.office} دج
+                                        </span>
+                                    )}
+                                </span>
+                            </label>
                         ))}
                     </div>
                 </div>
@@ -379,7 +456,7 @@ export default function CheckoutForm({ cart, totalPrice, onSuccess, setOrderID }
                     <div className="flex justify-between text-sm">
                         <span className="text-gray-500">سعر التوصيل</span>
                         <span className="text-black font-medium">
-                            {selectedWilaya ? `${deliveryPrice} دج` : "حدد الولاية أولاً"}
+                            {getSelectedDeliveryLabel()}
                         </span>
                     </div>
                     <div className="pt-3 border-t border-dashed border-gray-200 flex justify-between items-center">
@@ -390,8 +467,8 @@ export default function CheckoutForm({ cart, totalPrice, onSuccess, setOrderID }
 
                 <button
                     type="submit"
-                    disabled={isSubmitting}
-                    className={`w-full ${isSubmitting ? 'bg-gray-400' : 'bg-black'} text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all hover:scale-[1.01] active:scale-[0.99]`}
+                    disabled={isSubmitting || !deliveryFees}
+                    className={`w-full ${isSubmitting || !deliveryFees ? 'bg-gray-400' : 'bg-black'} text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all hover:scale-[1.01] active:scale-[0.99]`}
                 >
                     {isSubmitting ? (
                         <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
